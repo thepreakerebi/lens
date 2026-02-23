@@ -7,6 +7,14 @@ import type { Doc, Id } from "@/convex/_generated/dataModel";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from "@/components/ui/breadcrumb";
 import { formatDuration } from "@/lib/utils";
 import Link from "next/link";
 import { HugeiconsIcon } from "@hugeicons/react";
@@ -42,6 +50,24 @@ export default function CameraDetailPage({
 
   return (
     <article className="p-6 flex flex-col gap-6 max-w-5xl">
+      <Breadcrumb>
+        <BreadcrumbList>
+          <BreadcrumbItem>
+            <BreadcrumbLink asChild>
+              <Link href="/cameras">Cameras</Link>
+            </BreadcrumbLink>
+          </BreadcrumbItem>
+          <BreadcrumbSeparator />
+          <BreadcrumbItem>
+            {camera === undefined ? (
+              <Skeleton className="h-4 w-24" />
+            ) : (
+              <BreadcrumbPage>{camera.name}</BreadcrumbPage>
+            )}
+          </BreadcrumbItem>
+        </BreadcrumbList>
+      </Breadcrumb>
+
       <header className="flex items-center gap-3">
         <Link href="/cameras">
           <Button variant="ghost" size="icon" className="h-8 w-8">

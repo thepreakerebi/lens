@@ -7,10 +7,25 @@ import type { Doc, Id } from "@/convex/_generated/dataModel";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Tabs } from "@/components/ui/tabs";
-import { Select } from "@/components/ui/select";
 import { Card } from "@/components/ui/card";
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from "@/components/ui/breadcrumb";
 import { useSearchParams, useRouter } from "next/navigation";
+import Link from "next/link";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { CloudUploadIcon, LinkSquare01Icon } from "@hugeicons/core-free-icons";
 
@@ -80,9 +95,45 @@ export default function IngestPage() {
   };
 
   const readyCameras = cameras?.filter((c: Doc<"cameras">) => c.twelveLabsIndexId) ?? [];
+  const selectedCamera = cameras?.find(
+    (c: Doc<"cameras">) => c._id === cameraId
+  );
+
+  const cameraItems = readyCameras.map((c: Doc<"cameras">) => ({
+    value: c._id,
+    label: `${c.name} — ${c.location}`,
+  }));
 
   return (
     <article className="p-6 flex flex-col gap-6 max-w-2xl">
+      <Breadcrumb>
+        <BreadcrumbList>
+          <BreadcrumbItem>
+            <BreadcrumbLink asChild>
+              <Link href="/cameras">Cameras</Link>
+            </BreadcrumbLink>
+          </BreadcrumbItem>
+          <BreadcrumbSeparator />
+          {selectedCamera ? (
+            <>
+              <BreadcrumbItem>
+                <BreadcrumbLink asChild>
+                  <Link href={`/cameras/${cameraId}`}>{selectedCamera.name}</Link>
+                </BreadcrumbLink>
+              </BreadcrumbItem>
+              <BreadcrumbSeparator />
+              <BreadcrumbItem>
+                <BreadcrumbPage>Ingest Footage</BreadcrumbPage>
+              </BreadcrumbItem>
+            </>
+          ) : (
+            <BreadcrumbItem>
+              <BreadcrumbPage>Ingest Footage</BreadcrumbPage>
+            </BreadcrumbItem>
+          )}
+        </BreadcrumbList>
+      </Breadcrumb>
+
       <header>
         <h1 className="text-2xl font-bold">Ingest Footage</h1>
         <p className="text-muted-foreground text-sm mt-1">
@@ -97,19 +148,25 @@ export default function IngestPage() {
             <p className="text-xs text-muted-foreground">
               Select which camera this footage belongs to.
             </p>
-            <select
-              id="camera"
-              value={cameraId}
-              onChange={(e) => setCameraId(e.target.value)}
-              className="flex h-12 w-full rounded-md border border-input bg-transparent px-3 py-2 text-base shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+            <Select
+              value={cameraId || null}
+              onValueChange={(v) => setCameraId(v ?? "")}
+              items={cameraItems}
+              disabled={readyCameras.length === 0}
             >
-              <option value="">Select a camera…</option>
-              {readyCameras.map((c: Doc<"cameras">) => (
-                <option key={c._id} value={c._id}>
-                  {c.name} — {c.location}
-                </option>
-              ))}
-            </select>
+              <SelectTrigger id="camera" className="w-full">
+                <SelectValue placeholder="Select a camera…" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectGroup>
+                  {readyCameras.map((c: Doc<"cameras">) => (
+                    <SelectItem key={c._id} value={c._id}>
+                      {c.name} — {c.location}
+                    </SelectItem>
+                  ))}
+                </SelectGroup>
+              </SelectContent>
+            </Select>
             {cameras && cameras.length > 0 && readyCameras.length === 0 && (
               <p className="text-sm text-yellow-600">
                 Cameras are still being set up. Please wait a moment.
