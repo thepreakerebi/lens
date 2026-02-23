@@ -78,7 +78,7 @@ export default function DashboardLayout({
   };
 
   return (
-    <SidebarProvider>
+    <SidebarProvider className="h-svh overflow-hidden">
       <Sidebar>
         <SidebarHeader className="border-b border-sidebar-border">
           <SidebarGroup>
@@ -139,11 +139,11 @@ export default function DashboardLayout({
         </SidebarFooter>
       </Sidebar>
 
-      <SidebarInset>
+      <SidebarInset className="min-h-0 overflow-hidden">
         <header className="flex h-14 shrink-0 items-center gap-2 border-b px-4">
           <SidebarTrigger className="-ml-1" />
         </header>
-        <main className="flex-1 overflow-y-auto">{children}</main>
+        <main className="min-h-0 flex-1 overflow-y-auto">{children}</main>
       </SidebarInset>
     </SidebarProvider>
   );
