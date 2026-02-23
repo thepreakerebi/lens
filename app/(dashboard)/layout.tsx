@@ -58,7 +58,7 @@ export default function DashboardLayout({
 
   const handleSignOut = async () => {
     await authClient.signOut();
-    router.replace("/");
+    router.replace("/sign-in");
   };
 
   return (
