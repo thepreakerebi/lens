@@ -27,13 +27,13 @@ export default function SearchPage() {
   };
 
   return (
-    <div className="p-6 flex flex-col gap-6 max-w-5xl">
-      <div>
+    <article className="p-6 flex flex-col gap-6 max-w-5xl">
+      <header>
         <h1 className="text-2xl font-bold">Search Footage</h1>
         <p className="text-muted-foreground text-sm mt-1">
           Describe what you&apos;re looking for in plain English.
         </p>
-      </div>
+      </header>
 
       <SearchBar
         cameras={cameras ?? []}
@@ -41,9 +41,8 @@ export default function SearchPage() {
         onSearchComplete={handleSearch}
       />
 
-      <div className="flex gap-6">
-        {/* Results */}
-        <div className="flex-1 flex flex-col gap-3">
+      <section className="flex gap-6">
+        <section className="flex-1 flex flex-col gap-3" aria-label="Search results">
           {searching ? (
             Array.from({ length: 4 }).map((_, i) => (
               <Skeleton key={i} className="h-28 rounded-lg" />
@@ -65,41 +64,42 @@ export default function SearchPage() {
               Enter a query above to search your indexed footage.
             </p>
           )}
-        </div>
+        </section>
 
-        {/* History sidebar */}
         <aside className="w-56 shrink-0">
           <h3 className="text-sm font-semibold mb-3">Recent Searches</h3>
           {searchHistory === undefined ? (
-            <div className="flex flex-col gap-2">
-              {Array.from({ length: 3 }).map((_, i) => (
-                <Skeleton key={i} className="h-8 rounded" />
-              ))}
-            </div>
+            <ul className="flex flex-col gap-2 list-none p-0 m-0">
+            {Array.from({ length: 3 }).map((_, i) => (
+              <li key={i}>
+                <Skeleton className="h-8 rounded" />
+              </li>
+            ))}
+          </ul>
           ) : searchHistory.length === 0 ? (
             <p className="text-xs text-muted-foreground">No searches yet.</p>
           ) : (
-            <div className="flex flex-col gap-1">
+            <ul className="flex flex-col gap-1 list-none p-0 m-0">
               {searchHistory.map((q: Doc<"searchQueries">) => (
                 <button
                   key={q._id}
                   onClick={() => setActiveQueryId(q._id)}
-                  className={`text-left px-3 py-2 rounded text-xs transition-colors ${
+                  className={`text-left px-3 py-2 rounded text-xs transition-colors w-full ${
                     activeQueryId === q._id
                       ? "bg-primary text-primary-foreground"
                       : "text-muted-foreground hover:bg-muted"
                   }`}
                 >
-                  <div className="truncate">{q.query}</div>
+                  <p className="truncate m-0">{q.query}</p>
                   <Badge variant="secondary" className="mt-0.5 text-xs px-1 py-0">
                     {q.resultsCount} results
                   </Badge>
                 </button>
               ))}
-            </div>
+            </ul>
           )}
         </aside>
-      </div>
-    </div>
+      </section>
+    </article>
   );
 }

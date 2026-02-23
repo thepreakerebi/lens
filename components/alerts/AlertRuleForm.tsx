@@ -46,7 +46,7 @@ export function AlertRuleForm({ cameras, onSuccess }: AlertRuleFormProps) {
     <Card className="p-5 flex flex-col gap-4">
       <h3 className="text-sm font-semibold">New Alert Rule</h3>
       <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-        <div className="flex flex-col gap-1.5">
+        <fieldset className="flex flex-col gap-1.5 border-none p-0 m-0">
           <Label htmlFor="rule-name">Rule name</Label>
           <Input
             id="rule-name"
@@ -54,14 +54,14 @@ export function AlertRuleForm({ cameras, onSuccess }: AlertRuleFormProps) {
             value={name}
             onChange={(e) => setName(e.target.value)}
           />
-        </div>
+        </fieldset>
 
-        <div className="flex flex-col gap-1.5">
+        <fieldset className="flex flex-col gap-1.5 border-none p-0 m-0">
           <Label htmlFor="rule-description">
             Description{" "}
-            <span className="text-muted-foreground font-normal">
+            <small className="text-muted-foreground font-normal">
               (natural language)
-            </span>
+            </small>
           </Label>
           <Input
             id="rule-description"
@@ -72,9 +72,9 @@ export function AlertRuleForm({ cameras, onSuccess }: AlertRuleFormProps) {
           <p className="text-xs text-muted-foreground">
             Describe what to detect. Lens searches your footage for this.
           </p>
-        </div>
+        </fieldset>
 
-        <div className="flex flex-col gap-1.5">
+        <fieldset className="flex flex-col gap-1.5 border-none p-0 m-0">
           <Label htmlFor="rule-camera">Camera</Label>
           <select
             id="rule-camera"
@@ -89,9 +89,9 @@ export function AlertRuleForm({ cameras, onSuccess }: AlertRuleFormProps) {
               </option>
             ))}
           </select>
-        </div>
+        </fieldset>
 
-        <div className="flex items-center gap-2">
+        <fieldset className="flex items-center gap-2 border-none p-0 m-0">
           <input
             type="checkbox"
             id="email-notif"
@@ -100,12 +100,12 @@ export function AlertRuleForm({ cameras, onSuccess }: AlertRuleFormProps) {
             className="rounded border-input"
           />
           <Label htmlFor="email-notif">Send email notification</Label>
-        </div>
+        </fieldset>
 
-        <div className="flex flex-col gap-1.5">
+        <fieldset className="flex flex-col gap-1.5 border-none p-0 m-0">
           <Label htmlFor="webhook">
             Webhook URL{" "}
-            <span className="text-muted-foreground font-normal">(optional)</span>
+            <small className="text-muted-foreground font-normal">(optional)</small>
           </Label>
           <Input
             id="webhook"
@@ -113,9 +113,9 @@ export function AlertRuleForm({ cameras, onSuccess }: AlertRuleFormProps) {
             value={webhookUrl}
             onChange={(e) => setWebhookUrl(e.target.value)}
           />
-        </div>
+        </fieldset>
 
-        <div className="flex gap-2 justify-end">
+        <footer className="flex gap-2 justify-end">
           <Button
             type="button"
             variant="outline"
@@ -129,7 +129,7 @@ export function AlertRuleForm({ cameras, onSuccess }: AlertRuleFormProps) {
           >
             {loading ? "Creating…" : "Create Rule"}
           </Button>
-        </div>
+        </footer>
       </form>
     </Card>
   );

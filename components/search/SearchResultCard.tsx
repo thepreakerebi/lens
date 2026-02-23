@@ -23,24 +23,22 @@ export function SearchResultCard({ result }: SearchResultCardProps) {
 
   return (
     <Card className="p-4 flex flex-col gap-3">
-      <div className="flex items-start justify-between gap-3">
-        <div className="flex items-center gap-2">
-          <HugeiconsIcon icon={VideoReplayIcon} size={16} className="text-muted-foreground shrink-0" />
-          <span className="text-sm font-medium">
+      <header className="flex items-start justify-between gap-3">
+        <section className="flex items-center gap-2">
+          <HugeiconsIcon icon={VideoReplayIcon} size={16} className="text-muted-foreground shrink-0" aria-hidden />
+          <strong className="text-sm font-medium">
             {video?.title ?? "Loading…"}
-          </span>
-        </div>
+          </strong>
+        </section>
         <Badge variant="outline" className="text-xs shrink-0">
           Score: {(result.score * 100).toFixed(0)}%
         </Badge>
-      </div>
+      </header>
 
-      <div className="flex items-center gap-2 text-xs text-muted-foreground">
-        <HugeiconsIcon icon={Clock01Icon} size={14} />
-        <span>
-          {formatTime(result.start)} – {formatTime(result.end)}
-        </span>
-      </div>
+      <p className="flex items-center gap-2 text-xs text-muted-foreground m-0">
+        <HugeiconsIcon icon={Clock01Icon} size={14} aria-hidden />
+        {formatTime(result.start)} – {formatTime(result.end)}
+      </p>
 
       {result.pegasusSummary && (
         <p className="text-xs text-muted-foreground leading-relaxed border-t pt-2">

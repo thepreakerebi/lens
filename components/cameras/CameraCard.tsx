@@ -13,33 +13,36 @@ export function CameraCard({ camera }: CameraCardProps) {
   return (
     <Link href={`/cameras/${camera._id}`}>
       <Card className="p-5 flex flex-col gap-4 hover:border-primary/50 transition-colors cursor-pointer">
-        <div className="flex items-start justify-between">
-          <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
+        <header className="flex items-start justify-between">
+          <figure
+            className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center m-0"
+            aria-hidden
+          >
             <HugeiconsIcon icon={Camera01Icon} size={20} className="text-primary" />
-          </div>
+          </figure>
           <Badge
             variant={camera.status === "active" ? "default" : "secondary"}
             className="text-xs"
           >
             {camera.status}
           </Badge>
-        </div>
+        </header>
 
-        <div className="flex flex-col gap-1">
-          <span className="font-semibold text-sm">{camera.name}</span>
-          <div className="flex items-center gap-1 text-xs text-muted-foreground">
-            <HugeiconsIcon icon={Location01Icon} size={12} />
+        <section className="flex flex-col gap-1">
+          <strong className="font-semibold text-sm">{camera.name}</strong>
+          <p className="flex items-center gap-1 text-xs text-muted-foreground m-0">
+            <HugeiconsIcon icon={Location01Icon} size={12} aria-hidden />
             {camera.location}
-          </div>
-        </div>
+          </p>
+        </section>
 
-        <div className="text-xs text-muted-foreground">
+        <p className="text-xs text-muted-foreground m-0">
           {camera.twelveLabsIndexId ? (
-            <span className="text-green-600">Index ready</span>
+            <small className="text-green-600">Index ready</small>
           ) : (
-            <span className="text-yellow-600">Creating index…</span>
+            <small className="text-yellow-600">Creating index…</small>
           )}
-        </div>
+        </p>
       </Card>
     </Link>
   );

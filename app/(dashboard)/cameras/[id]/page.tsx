@@ -34,15 +34,15 @@ export default function CameraDetailPage({
 
   if (camera === null) {
     return (
-      <div className="p-6">
+      <section className="p-6" aria-label="Error">
         <p className="text-muted-foreground text-sm">Camera not found.</p>
-      </div>
+      </section>
     );
   }
 
   return (
-    <div className="p-6 flex flex-col gap-6 max-w-5xl">
-      <div className="flex items-center gap-3">
+    <article className="p-6 flex flex-col gap-6 max-w-5xl">
+      <header className="flex items-center gap-3">
         <Link href="/cameras">
           <Button variant="ghost" size="icon" className="h-8 w-8">
             <HugeiconsIcon icon={ArrowLeft01Icon} size={16} />
@@ -51,31 +51,31 @@ export default function CameraDetailPage({
         {camera === undefined ? (
           <Skeleton className="h-8 w-48" />
         ) : (
-          <div>
+          <section>
             <h1 className="text-2xl font-bold">{camera.name}</h1>
             <p className="text-muted-foreground text-sm">{camera.location}</p>
-          </div>
+          </section>
         )}
-      </div>
+      </header>
 
       {camera && (
-        <div className="flex items-center gap-3">
+        <section className="flex items-center gap-3" aria-label="Camera status">
           <Badge variant={camera.status === "active" ? "default" : "secondary"}>
             {camera.status}
           </Badge>
           {camera.twelveLabsIndexId ? (
-            <span className="text-xs text-muted-foreground">
+            <small className="text-xs text-muted-foreground">
               TL Index: {camera.twelveLabsIndexId.slice(0, 12)}…
-            </span>
+            </small>
           ) : (
-            <span className="text-xs text-yellow-600">
+            <small className="text-xs text-yellow-600">
               Creating Twelve Labs index…
-            </span>
+            </small>
           )}
-        </div>
+        </section>
       )}
 
-      <div className="flex items-center justify-between">
+      <header className="flex items-center justify-between">
         <h2 className="text-base font-semibold">Footage</h2>
         <Link href={`/ingest?camera=${id}`}>
           <Button size="sm" variant="outline">
@@ -83,33 +83,35 @@ export default function CameraDetailPage({
             Ingest Video
           </Button>
         </Link>
-      </div>
+      </header>
 
       {videos === undefined ? (
-        <div className="flex flex-col gap-3">
+        <ul className="flex flex-col gap-3 list-none p-0 m-0">
           {Array.from({ length: 3 }).map((_, i) => (
-            <Skeleton key={i} className="h-16 rounded-lg" />
+            <li key={i}>
+              <Skeleton className="h-16 rounded-lg" />
+            </li>
           ))}
-        </div>
+        </ul>
       ) : videos.length === 0 ? (
         <p className="text-sm text-muted-foreground">
           {`No footage ingested yet. Click "Ingest Video" to add footage.`}
         </p>
       ) : (
-        <div className="flex flex-col gap-2">
+        <ul className="flex flex-col gap-2 list-none p-0 m-0">
           {videos.map((video: Doc<"videos">) => (
-            <div
+            <li
               key={video._id}
               className="flex items-center justify-between p-4 rounded-lg border"
             >
-              <div className="flex flex-col gap-0.5">
-                <span className="text-sm font-medium">{video.title}</span>
-                {video.duration !== undefined && (
-                  <span className="text-xs text-muted-foreground">
+              <section className="flex flex-col gap-0.5">
+                <strong className="text-sm font-medium">{video.title}</strong>
+                {video.duration !== undefined ? (
+                  <small className="text-xs text-muted-foreground">
                     {formatDuration(video.duration)}
-                  </span>
-                )}
-              </div>
+                  </small>
+                ) : null}
+              </section>
               <Badge
                 className={
                   STATUS_COLORS[video.indexingStatus as keyof typeof STATUS_COLORS] +
@@ -119,10 +121,10 @@ export default function CameraDetailPage({
               >
                 {video.indexingStatus}
               </Badge>
-            </div>
+            </li>
           ))}
-        </div>
+        </ul>
       )}
-    </div>
+    </article>
   );
 }

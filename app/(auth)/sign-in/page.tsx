@@ -42,12 +42,12 @@ export default function SignInPage() {
 
   return (
     <Card className="w-full max-w-sm p-8 flex flex-col gap-6">
-      <div className="flex flex-col gap-2 text-center">
+      <header className="flex flex-col gap-2 text-center">
         <h1 className="text-2xl font-bold tracking-tight">Lens</h1>
         <p className="text-muted-foreground text-sm">
           AI-powered CCTV monitoring. Sign in to continue.
         </p>
-      </div>
+      </header>
 
       <Button
         onClick={handleGoogleSignIn}

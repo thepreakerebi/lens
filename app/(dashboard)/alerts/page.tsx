@@ -31,18 +31,18 @@ export default function AlertsPage() {
   const unreadCount = useQuery(api.alerts.listIncidents, { unreadOnly: true })?.length ?? 0;
 
   return (
-    <div className="p-6 flex flex-col gap-6 max-w-5xl">
-      <div>
+    <article className="p-6 flex flex-col gap-6 max-w-5xl">
+      <header>
         <h1 className="text-2xl font-bold">Alerts</h1>
         <p className="text-muted-foreground text-sm mt-1">
           Incidents detected by your alert rules.
         </p>
-      </div>
+      </header>
 
-      {/* Incidents */}
-      <div className="flex flex-col gap-3">
-        <div className="flex items-center justify-between">
-          <div className="flex rounded-md border overflow-hidden w-fit">
+      <section className="flex flex-col gap-3" aria-labelledby="incidents-heading">
+        <h2 id="incidents-heading" className="sr-only">Incidents</h2>
+        <header className="flex items-center justify-between">
+          <nav className="flex rounded-md border overflow-hidden w-fit" aria-label="Filter incidents">
             {(["unread", "all"] as const).map((t) => (
               <button
                 key={t}
@@ -61,8 +61,8 @@ export default function AlertsPage() {
                 )}
               </button>
             ))}
-          </div>
-          <div className="flex gap-2">
+          </nav>
+          <section className="flex gap-2" aria-label="Incident actions">
             {unreadCount > 0 && (
               <Button
                 variant="outline"
@@ -79,34 +79,37 @@ export default function AlertsPage() {
             >
               Run check now
             </Button>
-          </div>
-        </div>
+          </section>
+        </header>
 
         {incidents === undefined ? (
-          <div className="flex flex-col gap-3">
+          <ul className="flex flex-col gap-3 list-none p-0 m-0">
             {Array.from({ length: 3 }).map((_, i) => (
-              <Skeleton key={i} className="h-24 rounded-lg" />
+              <li key={i}>
+                <Skeleton className="h-24 rounded-lg" />
+              </li>
             ))}
-          </div>
+          </ul>
         ) : incidents.length === 0 ? (
           <p className="text-sm text-muted-foreground py-4">
             {tab === "unread" ? "No unread incidents." : "No incidents yet."}
           </p>
         ) : (
-          <div className="flex flex-col gap-3">
+          <ul className="flex flex-col gap-3 list-none p-0 m-0">
             {incidents.map((incident: Doc<"incidents">) => (
-              <IncidentCard key={incident._id} incident={incident} />
+              <li key={incident._id}>
+                <IncidentCard incident={incident} />
+              </li>
             ))}
-          </div>
+          </ul>
         )}
-      </div>
+      </section>
 
       <Separator />
 
-      {/* Alert Rules */}
-      <div className="flex flex-col gap-4">
-        <div className="flex items-center justify-between">
-          <h2 className="text-base font-semibold">Alert Rules</h2>
+      <section className="flex flex-col gap-4" aria-labelledby="alert-rules-heading">
+        <header className="flex items-center justify-between">
+          <h2 id="alert-rules-heading" className="text-base font-semibold">Alert Rules</h2>
           <Button
             size="sm"
             variant="outline"
@@ -115,7 +118,7 @@ export default function AlertsPage() {
             <HugeiconsIcon icon={AddCircleIcon} size={16} className="mr-2" />
             New Rule
           </Button>
-        </div>
+        </header>
 
         {showRuleForm && (
           <AlertRuleForm
@@ -125,29 +128,31 @@ export default function AlertsPage() {
         )}
 
         {alertRules === undefined ? (
-          <div className="flex flex-col gap-2">
+          <ul className="flex flex-col gap-2 list-none p-0 m-0">
             {Array.from({ length: 2 }).map((_, i) => (
-              <Skeleton key={i} className="h-16 rounded-lg" />
+              <li key={i}>
+                <Skeleton className="h-16 rounded-lg" />
+              </li>
             ))}
-          </div>
+          </ul>
         ) : alertRules.length === 0 ? (
           <p className="text-sm text-muted-foreground">
             No alert rules yet. Create one to start detecting incidents automatically.
           </p>
         ) : (
-          <div className="flex flex-col gap-2">
+          <ul className="flex flex-col gap-2 list-none p-0 m-0">
             {alertRules.map((rule: Doc<"alertRules">) => (
-              <div
+              <li
                 key={rule._id}
                 className="flex items-center justify-between p-4 rounded-lg border"
               >
-                <div className="flex flex-col gap-0.5">
-                  <span className="text-sm font-medium">{rule.name}</span>
-                  <span className="text-xs text-muted-foreground">
+                <section className="flex flex-col gap-0.5">
+                  <strong className="text-sm font-medium">{rule.name}</strong>
+                  <small className="text-xs text-muted-foreground">
                     {rule.description}
-                  </span>
-                </div>
-                <div className="flex items-center gap-2">
+                  </small>
+                </section>
+                <section className="flex items-center gap-2" aria-label="Rule actions">
                   <Badge variant={rule.isActive ? "default" : "secondary"}>
                     {rule.isActive ? "active" : "paused"}
                   </Badge>
@@ -173,12 +178,12 @@ export default function AlertsPage() {
                   >
                     <HugeiconsIcon icon={Delete01Icon} size={16} />
                   </Button>
-                </div>
-              </div>
+                </section>
+              </li>
             ))}
-          </div>
+          </ul>
         )}
-      </div>
-    </div>
+      </section>
+    </article>
   );
 }

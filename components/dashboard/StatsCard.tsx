@@ -11,25 +11,24 @@ interface StatsCardProps {
 export function StatsCard({ label, value, icon, highlight }: StatsCardProps) {
   return (
     <Card className={`p-5 flex flex-col gap-3 ${highlight ? "border-destructive/50" : ""}`}>
-      <div className="flex items-center justify-between">
-        <span className="text-sm text-muted-foreground">{label}</span>
-        <div
-          className={`w-8 h-8 rounded-md flex items-center justify-center ${
+      <header className="flex items-center justify-between">
+        <small className="text-sm text-muted-foreground">{label}</small>
+        <figure
+          className={`w-8 h-8 rounded-md flex items-center justify-center m-0 ${
             highlight ? "bg-destructive/10" : "bg-primary/10"
           }`}
+          aria-hidden
         >
           <HugeiconsIcon
             icon={icon}
             size={16}
             className={highlight ? "text-destructive" : "text-primary"}
           />
-        </div>
-      </div>
-      <span
-        className={`text-3xl font-bold ${highlight ? "text-destructive" : ""}`}
-      >
+        </figure>
+      </header>
+      <p className={`text-3xl font-bold m-0 ${highlight ? "text-destructive" : ""}`}>
         {value}
-      </span>
+      </p>
     </Card>
   );
 }

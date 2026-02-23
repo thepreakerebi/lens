@@ -23,23 +23,22 @@ export default function SettingsPage() {
   const updateRule = useMutation(api.alerts.updateAlertRule);
 
   return (
-    <div className="p-6 flex flex-col gap-8 max-w-3xl">
-      <div>
+    <article className="p-6 flex flex-col gap-8 max-w-3xl">
+      <header>
         <h1 className="text-2xl font-bold">Settings</h1>
         <p className="text-muted-foreground text-sm mt-1">
           Manage alert rules and notification preferences.
         </p>
-      </div>
+      </header>
 
-      {/* Alert Rules */}
       <Card className="p-6 flex flex-col gap-4">
-        <div className="flex items-center justify-between">
-          <div>
+        <header className="flex items-center justify-between">
+          <section>
             <h2 className="text-base font-semibold">Alert Rules</h2>
             <p className="text-xs text-muted-foreground mt-0.5">
               Natural-language rules that trigger incident alerts when matched.
             </p>
-          </div>
+          </section>
           <Button
             size="sm"
             variant="outline"
@@ -48,7 +47,7 @@ export default function SettingsPage() {
             <HugeiconsIcon icon={AddCircleIcon} size={16} className="mr-2" />
             Add Rule
           </Button>
-        </div>
+        </header>
 
         {showRuleForm && (
           <>
@@ -63,23 +62,25 @@ export default function SettingsPage() {
         <Separator />
 
         {alertRules === undefined ? (
-          <div className="flex flex-col gap-2">
+          <ul className="flex flex-col gap-2 list-none p-0 m-0">
             {Array.from({ length: 2 }).map((_, i) => (
-              <Skeleton key={i} className="h-14 rounded" />
+              <li key={i}>
+                <Skeleton className="h-14 rounded" />
+              </li>
             ))}
-          </div>
+          </ul>
         ) : alertRules.length === 0 ? (
           <p className="text-sm text-muted-foreground">No alert rules yet.</p>
         ) : (
-          <div className="flex flex-col gap-2">
+          <ul className="flex flex-col gap-2 list-none p-0 m-0">
             {alertRules.map((rule: Doc<"alertRules">) => (
-              <div
+              <li
                 key={rule._id}
                 className="flex items-start justify-between gap-4 py-3"
               >
-                <div className="flex flex-col gap-1 flex-1 min-w-0">
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm font-medium">{rule.name}</span>
+                <section className="flex flex-col gap-1 flex-1 min-w-0">
+                  <header className="flex items-center gap-2">
+                    <strong className="text-sm font-medium">{rule.name}</strong>
                     <Badge
                       variant={rule.isActive ? "default" : "secondary"}
                       className="text-xs"
@@ -91,7 +92,7 @@ export default function SettingsPage() {
                         email
                       </Badge>
                     )}
-                  </div>
+                  </header>
                   <p className="text-xs text-muted-foreground truncate">
                     {rule.description}
                   </p>
@@ -100,8 +101,8 @@ export default function SettingsPage() {
                       Webhook: {rule.webhookUrl}
                     </p>
                   )}
-                </div>
-                <div className="flex items-center gap-1 shrink-0">
+                </section>
+                <section className="flex items-center gap-1 shrink-0" aria-label="Rule actions">
                   <Button
                     variant="outline"
                     size="sm"
@@ -119,12 +120,12 @@ export default function SettingsPage() {
                   >
                     <HugeiconsIcon icon={Delete01Icon} size={16} />
                   </Button>
-                </div>
-              </div>
+                </section>
+              </li>
             ))}
-          </div>
+          </ul>
         )}
       </Card>
-    </div>
+    </article>
   );
 }

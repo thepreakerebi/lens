@@ -82,18 +82,17 @@ export default function IngestPage() {
   const readyCameras = cameras?.filter((c: Doc<"cameras">) => c.twelveLabsIndexId) ?? [];
 
   return (
-    <div className="p-6 flex flex-col gap-6 max-w-2xl">
-      <div>
+    <article className="p-6 flex flex-col gap-6 max-w-2xl">
+      <header>
         <h1 className="text-2xl font-bold">Ingest Footage</h1>
         <p className="text-muted-foreground text-sm mt-1">
           Add video footage to a camera&apos;s index for AI-powered search and alerting.
         </p>
-      </div>
+      </header>
 
       <Card className="p-6">
-        <div className="flex flex-col gap-5">
-          {/* Camera selector */}
-          <div className="flex flex-col gap-1.5">
+        <section className="flex flex-col gap-5">
+          <fieldset className="flex flex-col gap-1.5 border-none p-0 m-0">
             <Label htmlFor="camera">Camera</Label>
             <select
               id="camera"
@@ -113,10 +112,9 @@ export default function IngestPage() {
                 Cameras are still creating their Twelve Labs index. Please wait a moment.
               </p>
             )}
-          </div>
+          </fieldset>
 
-          {/* Title */}
-          <div className="flex flex-col gap-1.5">
+          <fieldset className="flex flex-col gap-1.5 border-none p-0 m-0">
             <Label htmlFor="title">Title</Label>
             <Input
               id="title"
@@ -124,10 +122,9 @@ export default function IngestPage() {
               value={title}
               onChange={(e) => setTitle(e.target.value)}
             />
-          </div>
+          </fieldset>
 
-          {/* Tab toggle */}
-          <div className="flex rounded-md border overflow-hidden w-fit">
+          <nav className="flex rounded-md border overflow-hidden w-fit" aria-label="Input method">
             {(["url", "upload"] as const).map((t) => (
               <button
                 key={t}
@@ -141,13 +138,13 @@ export default function IngestPage() {
                 {t === "url" ? "URL" : "Upload"}
               </button>
             ))}
-          </div>
+          </nav>
 
           {tab === "url" ? (
             <form onSubmit={handleUrlIngest} className="flex flex-col gap-4">
-              <div className="flex flex-col gap-1.5">
+              <fieldset className="flex flex-col gap-1.5 border-none p-0 m-0">
                 <Label htmlFor="url">Video URL</Label>
-                <div className="flex gap-2">
+                <section className="flex gap-2" aria-hidden="true">
                   <Input
                     id="url"
                     placeholder="https://example.com/footage.mp4"
@@ -164,11 +161,11 @@ export default function IngestPage() {
                   >
                     <HugeiconsIcon icon={LinkSquare01Icon} size={16} />
                   </Button>
-                </div>
+                </section>
                 <p className="text-xs text-muted-foreground">
                   Direct video URL (MP4, MOV, etc.). Up to 4 GB.
                 </p>
-              </div>
+              </fieldset>
               {error && <p className="text-sm text-destructive">{error}</p>}
               <Button
                 type="submit"
@@ -179,29 +176,30 @@ export default function IngestPage() {
             </form>
           ) : (
             <form onSubmit={handleUploadIngest} className="flex flex-col gap-4">
-              <div className="flex flex-col gap-1.5">
-                <Label>Video File</Label>
-                <div
-                  onClick={() => fileInputRef.current?.click()}
+              <fieldset className="flex flex-col gap-1.5 border-none p-0 m-0">
+                <Label htmlFor="video-file">Video File</Label>
+                <label
+                  htmlFor="video-file"
                   className="flex flex-col items-center gap-3 p-8 border-2 border-dashed rounded-lg cursor-pointer hover:border-primary transition-colors"
                 >
                   <HugeiconsIcon icon={CloudUploadIcon} size={32} className="text-muted-foreground" />
                   {file ? (
-                    <span className="text-sm font-medium">{file.name}</span>
+                    <strong className="text-sm font-medium">{file.name}</strong>
                   ) : (
-                    <span className="text-sm text-muted-foreground">
+                    <small className="text-sm text-muted-foreground">
                       Click to select a video file
-                    </span>
+                    </small>
                   )}
-                </div>
+                </label>
                 <input
+                  id="video-file"
                   ref={fileInputRef}
                   type="file"
                   accept="video/*"
                   className="hidden"
                   onChange={(e) => setFile(e.target.files?.[0] ?? null)}
                 />
-              </div>
+              </fieldset>
               {error && <p className="text-sm text-destructive">{error}</p>}
               <Button
                 type="submit"
@@ -211,8 +209,8 @@ export default function IngestPage() {
               </Button>
             </form>
           )}
-        </div>
+        </section>
       </Card>
-    </div>
+    </article>
   );
 }

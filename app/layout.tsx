@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Nunito_Sans } from "next/font/google";
 import "./globals.css";
 import { ConvexClientProvider } from "@/components/providers/ConvexClientProvider";
+import { TooltipProvider } from "@/components/ui/tooltip";
 import { getToken } from "@/lib/auth-server";
 
 const nunitoSans = Nunito_Sans({ variable: "--font-sans", subsets: ["latin"] });
@@ -23,7 +24,7 @@ export default async function RootLayout({
     <html lang="en" className={nunitoSans.variable}>
       <body className="antialiased">
         <ConvexClientProvider initialToken={token}>
-          {children}
+          <TooltipProvider>{children}</TooltipProvider>
         </ConvexClientProvider>
       </body>
     </html>

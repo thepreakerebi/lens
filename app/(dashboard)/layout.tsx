@@ -6,7 +6,6 @@ import { useEffect } from "react";
 import Link from "next/link";
 import { authClient } from "@/lib/auth-client";
 import { Button } from "@/components/ui/button";
-import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
@@ -19,6 +18,20 @@ import {
   DashboardSpeed01Icon,
   LogoutSquare01Icon,
 } from "@hugeicons/core-free-icons";
+import {
+  Sidebar,
+  SidebarContent,
+  SidebarFooter,
+  SidebarGroup,
+  SidebarGroupContent,
+  SidebarHeader,
+  SidebarInset,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+  SidebarProvider,
+  SidebarTrigger,
+} from "@/components/ui/sidebar";
 
 const navItems = [
   { href: "/dashboard", label: "Dashboard", icon: DashboardSpeed01Icon },
@@ -48,9 +61,12 @@ export default function DashboardLayout({
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-muted-foreground text-sm">Loading…</div>
-      </div>
+      <section
+        className="min-h-screen flex items-center justify-center"
+        aria-label="Loading"
+      >
+        <p className="text-muted-foreground text-sm">Loading…</p>
+      </section>
     );
   }
 
@@ -62,61 +78,74 @@ export default function DashboardLayout({
   };
 
   return (
-    <div className="flex h-screen bg-background">
-      {/* Sidebar */}
-      <aside className="w-60 flex flex-col border-r shrink-0">
-        <div className="flex items-center gap-2 px-6 py-5">
-          <span className="text-lg font-bold tracking-tight">Lens</span>
-          <span className="text-xs text-muted-foreground">by Watchwise</span>
-        </div>
+    <SidebarProvider>
+      <Sidebar>
+        <SidebarHeader className="border-b border-sidebar-border">
+          <SidebarGroup>
+            <SidebarGroupContent className="flex items-center gap-2 px-2 py-1">
+              <h2 className="text-lg font-bold tracking-tight">Lens</h2>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        </SidebarHeader>
 
-        <Separator />
+        <SidebarContent>
+          <SidebarGroup>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                {navItems.map(({ href, label, icon: Icon }) => {
+                  const isActive =
+                    href === "/dashboard"
+                      ? pathname === "/dashboard"
+                      : pathname.startsWith(href);
+                  return (
+                    <SidebarMenuItem key={href}>
+                      <SidebarMenuButton
+                        render={<Link href={href} />}
+                        isActive={isActive}
+                        tooltip={label}
+                      >
+                        <HugeiconsIcon icon={Icon} size={16} className="shrink-0" />
+                        {label}
+                        {label === "Alerts" && (unreadIncidents?.length ?? 0) > 0 ? (
+                          <Badge
+                            variant="destructive"
+                            className="ml-auto text-xs px-1.5 py-0"
+                          >
+                            {unreadIncidents!.length}
+                          </Badge>
+                        ) : null}
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  );
+                })}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        </SidebarContent>
 
-        <nav className="flex flex-col gap-1 p-3 flex-1">
-          {navItems.map(({ href, label, icon: Icon }) => {
-            const isActive =
-              href === "/dashboard"
-                ? pathname === "/dashboard"
-                : pathname.startsWith(href);
-            return (
-              <Link
-                key={href}
-                href={href}
-                className={`flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-colors ${
-                  isActive
-                    ? "bg-primary text-primary-foreground"
-                    : "text-muted-foreground hover:bg-muted hover:text-foreground"
-                }`}
+        <SidebarFooter className="border-t border-sidebar-border">
+          <SidebarGroup>
+            <SidebarGroupContent>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="w-full justify-start gap-3 text-muted-foreground"
+                onClick={handleSignOut}
               >
-                <HugeiconsIcon icon={Icon} size={16} className="shrink-0" />
-                <span>{label}</span>
-                {label === "Alerts" && (unreadIncidents?.length ?? 0) > 0 && (
-                  <Badge variant="destructive" className="ml-auto text-xs px-1.5 py-0">
-                    {unreadIncidents!.length}
-                  </Badge>
-                )}
-              </Link>
-            );
-          })}
-        </nav>
+                <HugeiconsIcon icon={LogoutSquare01Icon} size={16} />
+                Sign out
+              </Button>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        </SidebarFooter>
+      </Sidebar>
 
-        <Separator />
-
-        <div className="p-3">
-          <Button
-            variant="ghost"
-            size="sm"
-            className="w-full justify-start gap-3 text-muted-foreground"
-            onClick={handleSignOut}
-          >
-            <HugeiconsIcon icon={LogoutSquare01Icon} size={16} />
-            Sign out
-          </Button>
-        </div>
-      </aside>
-
-      {/* Main content */}
-      <main className="flex-1 overflow-y-auto">{children}</main>
-    </div>
+      <SidebarInset>
+        <header className="flex h-14 shrink-0 items-center gap-2 border-b px-4">
+          <SidebarTrigger className="-ml-1" />
+        </header>
+        <main className="flex-1 overflow-y-auto">{children}</main>
+      </SidebarInset>
+    </SidebarProvider>
   );
 }

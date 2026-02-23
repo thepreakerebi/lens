@@ -11,38 +11,42 @@ export default function CamerasPage() {
   const cameras = useQuery(api.cameras.list);
 
   return (
-    <div className="p-6 flex flex-col gap-6 max-w-5xl">
-      <div className="flex items-center justify-between">
-        <div>
+    <article className="p-6 flex flex-col gap-6 max-w-5xl">
+      <header className="flex items-center justify-between">
+        <section>
           <h1 className="text-2xl font-bold">Cameras</h1>
           <p className="text-muted-foreground text-sm mt-1">
             Each camera gets its own AI index. Add footage to start searching.
           </p>
-        </div>
+        </section>
         <AddCameraDialog />
-      </div>
+      </header>
 
       {cameras === undefined ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <ul className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 list-none p-0 m-0">
           {Array.from({ length: 3 }).map((_, i) => (
-            <Skeleton key={i} className="h-36 rounded-lg" />
+            <li key={i}>
+              <Skeleton className="h-36 rounded-lg" />
+            </li>
           ))}
-        </div>
+        </ul>
       ) : cameras.length === 0 ? (
-        <div className="text-center py-16 text-muted-foreground">
+        <section className="text-center py-16 text-muted-foreground" aria-label="Empty state">
           <p className="text-sm">No cameras yet.</p>
           <p className="text-xs mt-1">
             Add your first camera to get started — a Twelve Labs index will be
             created automatically.
           </p>
-        </div>
+        </section>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <ul className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 list-none p-0 m-0">
           {cameras.map((camera: Doc<"cameras">) => (
-            <CameraCard key={camera._id} camera={camera} />
+            <li key={camera._id}>
+              <CameraCard camera={camera} />
+            </li>
           ))}
-        </div>
+        </ul>
       )}
-    </div>
+    </article>
   );
 }
