@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useQuery, useMutation, useAction } from "convex/react";
 import { api } from "@/convex/_generated/api";
+import type { Doc } from "@/convex/_generated/dataModel";
 import { IncidentCard } from "@/components/alerts/IncidentCard";
 import { AlertRuleForm } from "@/components/alerts/AlertRuleForm";
 import { Button } from "@/components/ui/button";
@@ -10,7 +11,8 @@ import { Tabs } from "@/components/ui/tabs";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
-import { AddCircleIcon, Delete01Icon, ToggleOffIcon, ToggleOnIcon } from "@hugeicons/react";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { AddCircleIcon, Delete01Icon, ToggleOffIcon, ToggleOnIcon } from "@hugeicons/core-free-icons";
 
 export default function AlertsPage() {
   const [tab, setTab] = useState<"all" | "unread">("unread");
@@ -92,7 +94,7 @@ export default function AlertsPage() {
           </p>
         ) : (
           <div className="flex flex-col gap-3">
-            {incidents.map((incident) => (
+            {incidents.map((incident: Doc<"incidents">) => (
               <IncidentCard key={incident._id} incident={incident} />
             ))}
           </div>
@@ -110,7 +112,7 @@ export default function AlertsPage() {
             variant="outline"
             onClick={() => setShowRuleForm((v) => !v)}
           >
-            <AddCircleIcon className="h-4 w-4 mr-2" />
+            <HugeiconsIcon icon={AddCircleIcon} size={16} className="mr-2" />
             New Rule
           </Button>
         </div>
@@ -134,7 +136,7 @@ export default function AlertsPage() {
           </p>
         ) : (
           <div className="flex flex-col gap-2">
-            {alertRules.map((rule) => (
+            {alertRules.map((rule: Doc<"alertRules">) => (
               <div
                 key={rule._id}
                 className="flex items-center justify-between p-4 rounded-lg border"
@@ -158,9 +160,9 @@ export default function AlertsPage() {
                     }
                   >
                     {rule.isActive ? (
-                      <ToggleOnIcon className="h-4 w-4" />
+                      <HugeiconsIcon icon={ToggleOnIcon} size={16} />
                     ) : (
-                      <ToggleOffIcon className="h-4 w-4" />
+                      <HugeiconsIcon icon={ToggleOffIcon} size={16} />
                     )}
                   </Button>
                   <Button
@@ -169,7 +171,7 @@ export default function AlertsPage() {
                     className="h-8 w-8 text-destructive hover:text-destructive"
                     onClick={() => deleteRule({ id: rule._id })}
                   >
-                    <Delete01Icon className="h-4 w-4" />
+                    <HugeiconsIcon icon={Delete01Icon} size={16} />
                   </Button>
                 </div>
               </div>

@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useQuery, useAction } from "convex/react";
 import { api } from "@/convex/_generated/api";
-import type { Id } from "@/convex/_generated/dataModel";
+import type { Doc, Id } from "@/convex/_generated/dataModel";
 import { SearchBar } from "@/components/search/SearchBar";
 import { SearchResultCard } from "@/components/search/SearchResultCard";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -53,7 +53,7 @@ export default function SearchPage() {
               <Skeleton key={i} className="h-28 rounded-lg" />
             ))
           ) : results && results.length > 0 ? (
-            results.map((result) => (
+            results.map((result: Doc<"searchResults">) => (
               <SearchResultCard key={result._id} result={result} />
             ))
           ) : activeQueryId ? (
@@ -80,7 +80,7 @@ export default function SearchPage() {
             <p className="text-xs text-muted-foreground">No searches yet.</p>
           ) : (
             <div className="flex flex-col gap-1">
-              {searchHistory.map((q) => (
+              {searchHistory.map((q: Doc<"searchQueries">) => (
                 <button
                   key={q._id}
                   onClick={() => setActiveQueryId(q._id)}

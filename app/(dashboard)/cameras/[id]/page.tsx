@@ -1,15 +1,16 @@
 "use client";
 
 import { use } from "react";
-import { useQuery, useMutation } from "convex/react";
+import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
-import type { Id } from "@/convex/_generated/dataModel";
+import type { Doc, Id } from "@/convex/_generated/dataModel";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { formatDuration } from "@/lib/utils";
 import Link from "next/link";
-import { ArrowLeft01Icon, VideoReplayIcon } from "@hugeicons/react";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { ArrowLeft01Icon, VideoReplayIcon } from "@hugeicons/core-free-icons";
 
 const STATUS_COLORS = {
   pending: "bg-yellow-100 text-yellow-800",
@@ -44,7 +45,7 @@ export default function CameraDetailPage({
       <div className="flex items-center gap-3">
         <Link href="/cameras">
           <Button variant="ghost" size="icon" className="h-8 w-8">
-            <ArrowLeft01Icon className="h-4 w-4" />
+            <HugeiconsIcon icon={ArrowLeft01Icon} size={16} />
           </Button>
         </Link>
         {camera === undefined ? (
@@ -78,7 +79,7 @@ export default function CameraDetailPage({
         <h2 className="text-base font-semibold">Footage</h2>
         <Link href={`/ingest?camera=${id}`}>
           <Button size="sm" variant="outline">
-            <VideoReplayIcon className="h-4 w-4 mr-2" />
+            <HugeiconsIcon icon={VideoReplayIcon} size={16} className="mr-2" />
             Ingest Video
           </Button>
         </Link>
@@ -92,11 +93,11 @@ export default function CameraDetailPage({
         </div>
       ) : videos.length === 0 ? (
         <p className="text-sm text-muted-foreground">
-          No footage ingested yet. Click "Ingest Video" to add footage.
+          {`No footage ingested yet. Click "Ingest Video" to add footage.`}
         </p>
       ) : (
         <div className="flex flex-col gap-2">
-          {videos.map((video) => (
+          {videos.map((video: Doc<"videos">) => (
             <div
               key={video._id}
               className="flex items-center justify-between p-4 rounded-lg border"
@@ -111,7 +112,7 @@ export default function CameraDetailPage({
               </div>
               <Badge
                 className={
-                  STATUS_COLORS[video.indexingStatus] +
+                  STATUS_COLORS[video.indexingStatus as keyof typeof STATUS_COLORS] +
                   " text-xs font-medium border-0"
                 }
                 variant="outline"

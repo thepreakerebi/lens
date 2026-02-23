@@ -5,7 +5,8 @@ import { api } from "@/convex/_generated/api";
 import type { Doc } from "@/convex/_generated/dataModel";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { VideoReplayIcon, Clock01Icon } from "@hugeicons/react";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { VideoReplayIcon, Clock01Icon } from "@hugeicons/core-free-icons";
 
 interface SearchResultCardProps {
   result: Doc<"searchResults">;
@@ -24,7 +25,7 @@ export function SearchResultCard({ result }: SearchResultCardProps) {
     <Card className="p-4 flex flex-col gap-3">
       <div className="flex items-start justify-between gap-3">
         <div className="flex items-center gap-2">
-          <VideoReplayIcon className="h-4 w-4 text-muted-foreground shrink-0" />
+          <HugeiconsIcon icon={VideoReplayIcon} size={16} className="text-muted-foreground shrink-0" />
           <span className="text-sm font-medium">
             {video?.title ?? "Loading…"}
           </span>
@@ -35,7 +36,7 @@ export function SearchResultCard({ result }: SearchResultCardProps) {
       </div>
 
       <div className="flex items-center gap-2 text-xs text-muted-foreground">
-        <Clock01Icon className="h-3.5 w-3.5" />
+        <HugeiconsIcon icon={Clock01Icon} size={14} />
         <span>
           {formatTime(result.start)} – {formatTime(result.end)}
         </span>

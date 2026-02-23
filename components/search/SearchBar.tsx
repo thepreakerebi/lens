@@ -7,7 +7,8 @@ import { api } from "@/convex/_generated/api";
 import type { Id, Doc } from "@/convex/_generated/dataModel";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Search01Icon } from "@hugeicons/react";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { Search01Icon } from "@hugeicons/core-free-icons";
 
 interface SearchBarProps {
   compact?: boolean;
@@ -63,7 +64,7 @@ export function SearchBar({
           className="h-9 rounded-md border border-input bg-transparent px-3 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring shrink-0"
         >
           <option value="">All cameras</option>
-          {cameras.map((c) => (
+          {cameras.map((c: Doc<"cameras">) => (
             <option key={c._id} value={c._id}>
               {c.name}
             </option>
@@ -81,7 +82,7 @@ export function SearchBar({
         className="flex-1"
       />
       <Button type="submit" disabled={loading || !query.trim()}>
-        <Search01Icon className="h-4 w-4 mr-2" />
+        <HugeiconsIcon icon={Search01Icon} size={16} className="mr-2" />
         {loading ? "Searching…" : "Search"}
       </Button>
     </form>

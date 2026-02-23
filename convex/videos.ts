@@ -1,8 +1,10 @@
 import { ConvexError, v } from "convex/values";
+import type { Id } from "./_generated/dataModel";
 import {
   action,
   internalAction,
   internalMutation,
+  internalQuery,
   mutation,
   query,
 } from "./_generated/server";
@@ -54,7 +56,7 @@ export const createPendingVideo = internalMutation({
     sourceUrl: v.optional(v.string()),
     storageId: v.optional(v.id("_storage")),
   },
-  handler: async (ctx, args) => {
+  handler: async (ctx, args): Promise<Id<"videos">> => {
     return ctx.db.insert("videos", {
       ...args,
       indexingStatus: "pending",
@@ -100,12 +102,15 @@ export const ingestByUrl = action({
       throw new ConvexError("Camera index not ready yet. Please wait a moment.");
 
     // Create the video record
-    const videoId = await ctx.runMutation(internal.videos.createPendingVideo, {
-      cameraId,
-      userId: user._id,
-      title,
-      sourceUrl,
-    });
+    const videoId: Id<"videos"> = await ctx.runMutation(
+      internal.videos.createPendingVideo,
+      {
+        cameraId,
+        userId: user._id,
+        title,
+        sourceUrl,
+      }
+    );
 
     // Submit to Twelve Labs
     const apiKey = process.env.TWELVE_LABS_API_KEY!;
@@ -161,12 +166,15 @@ export const ingestDirectUpload = action({
     if (!camera?.twelveLabsIndexId)
       throw new ConvexError("Camera index not ready yet.");
 
-    const videoId = await ctx.runMutation(internal.videos.createPendingVideo, {
-      cameraId,
-      userId: user._id,
-      title,
-      storageId,
-    });
+    const videoId: Id<"videos"> = await ctx.runMutation(
+      internal.videos.createPendingVideo,
+      {
+        cameraId,
+        userId: user._id,
+        title,
+        storageId,
+      }
+    );
 
     // Get a download URL for the stored file
     const fileUrl = await ctx.storage.getUrl(storageId);
@@ -255,7 +263,7 @@ export const pollAllPending = internalAction({
   },
 });
 
-export const listIndexing = query({
+export const listIndexing = internalQuery({
   args: {},
   handler: async (ctx) => {
     return ctx.db

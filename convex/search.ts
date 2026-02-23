@@ -5,7 +5,7 @@ import {
   internalQuery,
   query,
 } from "./_generated/server";
-import type { Id } from "./_generated/dataModel";
+import type { Doc, Id } from "./_generated/dataModel";
 import { internal } from "./_generated/api";
 import { authComponent } from "./auth";
 
@@ -66,8 +66,8 @@ export const naturalLanguageSearch = action({
         { userId: user._id }
       );
       indexIds = cameras
-        .map((c) => c.twelveLabsIndexId)
-        .filter((id): id is string => !!id);
+        .map((c: Doc<"cameras">) => c.twelveLabsIndexId)
+        .filter((id: string | undefined): id is string => !!id);
     }
 
     if (indexIds.length === 0) {
@@ -120,12 +120,15 @@ export const naturalLanguageSearch = action({
       if (video) videosByTlId[tlId] = video._id;
     }
 
-    const searchQueryId = await ctx.runMutation(internal.search.saveQuery, {
-      userId: user._id,
-      query: queryText,
-      cameraId,
-      resultsCount: topClips.length,
-    });
+    const searchQueryId: Id<"searchQueries"> = await ctx.runMutation(
+      internal.search.saveQuery,
+      {
+        userId: user._id,
+        query: queryText,
+        cameraId,
+        resultsCount: topClips.length,
+      }
+    );
 
     for (let i = 0; i < topClips.length; i++) {
       const clip = topClips[i];

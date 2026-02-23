@@ -1,7 +1,12 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Camera01Icon, Search01Icon, Alert01Icon } from "@hugeicons/react";
+import { HugeiconsIcon } from "@hugeicons/react";
+import {
+  Camera01Icon,
+  Search01Icon,
+  Alert01Icon,
+} from "@hugeicons/core-free-icons";
 
 const features = [
   {
@@ -68,7 +73,7 @@ export default function LandingPage() {
         {features.map(({ icon: Icon, title, description }) => (
           <div key={title} className="flex flex-col gap-3">
             <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
-              <Icon className="h-5 w-5 text-primary" />
+              <HugeiconsIcon icon={Icon} size={20} className="text-primary" />
             </div>
             <h3 className="font-semibold">{title}</h3>
             <p className="text-sm text-muted-foreground leading-relaxed">

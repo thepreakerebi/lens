@@ -1,14 +1,14 @@
 import { Card } from "@/components/ui/card";
-import type { ComponentType } from "react";
+import { HugeiconsIcon, type IconSvgElement } from "@hugeicons/react";
 
 interface StatsCardProps {
   label: string;
   value: number;
-  icon: ComponentType<{ className?: string }>;
+  icon: IconSvgElement;
   highlight?: boolean;
 }
 
-export function StatsCard({ label, value, icon: Icon, highlight }: StatsCardProps) {
+export function StatsCard({ label, value, icon, highlight }: StatsCardProps) {
   return (
     <Card className={`p-5 flex flex-col gap-3 ${highlight ? "border-destructive/50" : ""}`}>
       <div className="flex items-center justify-between">
@@ -18,8 +18,10 @@ export function StatsCard({ label, value, icon: Icon, highlight }: StatsCardProp
             highlight ? "bg-destructive/10" : "bg-primary/10"
           }`}
         >
-          <Icon
-            className={`h-4 w-4 ${highlight ? "text-destructive" : "text-primary"}`}
+          <HugeiconsIcon
+            icon={icon}
+            size={16}
+            className={highlight ? "text-destructive" : "text-primary"}
           />
         </div>
       </div>

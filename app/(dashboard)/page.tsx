@@ -6,7 +6,11 @@ import { StatsCard } from "@/components/dashboard/StatsCard";
 import { IncidentCard } from "@/components/alerts/IncidentCard";
 import { SearchBar } from "@/components/search/SearchBar";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Camera01Icon, Alert01Icon, Search01Icon } from "@hugeicons/react";
+import {
+  Camera01Icon,
+  Alert01Icon,
+  Search01Icon,
+} from "@hugeicons/core-free-icons";
 
 export default function DashboardPage() {
   const cameras = useQuery(api.cameras.list);

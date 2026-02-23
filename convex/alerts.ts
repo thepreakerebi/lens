@@ -117,7 +117,7 @@ export const updateAlertRule = mutation({
       throw new ConvexError("Alert rule not found");
     // Remove undefined fields from patch
     const cleanPatch = Object.fromEntries(
-      Object.entries(patch).filter(([, val]) => val !== undefined)
+      Object.entries(patch).filter(([, v]) => v !== undefined)
     );
     await ctx.db.patch(id, cleanPatch);
   },
@@ -233,12 +233,12 @@ export const runAlertCheckForNewVideos = internalAction({
       });
       if (rules.length === 0) continue;
 
-      const userVideos = recentVideos.filter((vid) => vid.userId === userId);
+      const userVideos = recentVideos.filter((v) => v.userId === userId);
       if (userVideos.length === 0) continue;
 
       for (const rule of rules) {
         const targetVideos = rule.cameraId
-          ? userVideos.filter((vid) => vid.cameraId === rule.cameraId)
+          ? userVideos.filter((v) => v.cameraId === rule.cameraId)
           : userVideos;
 
         for (const video of targetVideos) {

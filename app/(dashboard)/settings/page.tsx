@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
+import type { Doc } from "@/convex/_generated/dataModel";
 import { AlertRuleForm } from "@/components/alerts/AlertRuleForm";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,7 +12,8 @@ import { Card } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { AddCircleIcon, Delete01Icon } from "@hugeicons/react";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { AddCircleIcon, Delete01Icon } from "@hugeicons/core-free-icons";
 
 export default function SettingsPage() {
   const [showRuleForm, setShowRuleForm] = useState(false);
@@ -43,7 +45,7 @@ export default function SettingsPage() {
             variant="outline"
             onClick={() => setShowRuleForm((v) => !v)}
           >
-            <AddCircleIcon className="h-4 w-4 mr-2" />
+            <HugeiconsIcon icon={AddCircleIcon} size={16} className="mr-2" />
             Add Rule
           </Button>
         </div>
@@ -70,7 +72,7 @@ export default function SettingsPage() {
           <p className="text-sm text-muted-foreground">No alert rules yet.</p>
         ) : (
           <div className="flex flex-col gap-2">
-            {alertRules.map((rule) => (
+            {alertRules.map((rule: Doc<"alertRules">) => (
               <div
                 key={rule._id}
                 className="flex items-start justify-between gap-4 py-3"
@@ -115,7 +117,7 @@ export default function SettingsPage() {
                     className="h-8 w-8 text-destructive hover:text-destructive"
                     onClick={() => deleteRule({ id: rule._id })}
                   >
-                    <Delete01Icon className="h-4 w-4" />
+                    <HugeiconsIcon icon={Delete01Icon} size={16} />
                   </Button>
                 </div>
               </div>

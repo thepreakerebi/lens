@@ -9,7 +9,8 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { AddCircleIcon } from "@hugeicons/react";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { AddCircleIcon } from "@hugeicons/core-free-icons";
 
 export function AddCameraDialog() {
   const [open, setOpen] = useState(false);
@@ -36,7 +37,7 @@ export function AddCameraDialog() {
   return (
     <>
       <Button onClick={() => setOpen(true)} size="sm">
-        <AddCircleIcon className="h-4 w-4 mr-2" />
+        <HugeiconsIcon icon={AddCircleIcon} size={16} className="mr-2" />
         Add Camera
       </Button>
 

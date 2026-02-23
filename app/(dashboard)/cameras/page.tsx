@@ -2,6 +2,7 @@
 
 import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
+import type { Doc } from "@/convex/_generated/dataModel";
 import { CameraCard } from "@/components/cameras/CameraCard";
 import { AddCameraDialog } from "@/components/cameras/AddCameraDialog";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -37,7 +38,7 @@ export default function CamerasPage() {
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {cameras.map((camera) => (
+          {cameras.map((camera: Doc<"cameras">) => (
             <CameraCard key={camera._id} camera={camera} />
           ))}
         </div>

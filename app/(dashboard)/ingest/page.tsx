@@ -3,7 +3,7 @@
 import { useState, useRef } from "react";
 import { useQuery, useMutation, useAction } from "convex/react";
 import { api } from "@/convex/_generated/api";
-import type { Id } from "@/convex/_generated/dataModel";
+import type { Doc, Id } from "@/convex/_generated/dataModel";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -11,7 +11,8 @@ import { Tabs } from "@/components/ui/tabs";
 import { Select } from "@/components/ui/select";
 import { Card } from "@/components/ui/card";
 import { useSearchParams, useRouter } from "next/navigation";
-import { CloudUploadIcon, LinkSquare01Icon } from "@hugeicons/react";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { CloudUploadIcon, LinkSquare01Icon } from "@hugeicons/core-free-icons";
 
 export default function IngestPage() {
   const searchParams = useSearchParams();
@@ -78,7 +79,7 @@ export default function IngestPage() {
     }
   };
 
-  const readyCameras = cameras?.filter((c) => c.twelveLabsIndexId) ?? [];
+  const readyCameras = cameras?.filter((c: Doc<"cameras">) => c.twelveLabsIndexId) ?? [];
 
   return (
     <div className="p-6 flex flex-col gap-6 max-w-2xl">
@@ -101,7 +102,7 @@ export default function IngestPage() {
               className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
             >
               <option value="">Select a camera…</option>
-              {readyCameras.map((c) => (
+              {readyCameras.map((c: Doc<"cameras">) => (
                 <option key={c._id} value={c._id}>
                   {c.name} — {c.location}
                 </option>
@@ -161,7 +162,7 @@ export default function IngestPage() {
                     onClick={() => window.open(url, "_blank")}
                     disabled={!url}
                   >
-                    <LinkSquare01Icon className="h-4 w-4" />
+                    <HugeiconsIcon icon={LinkSquare01Icon} size={16} />
                   </Button>
                 </div>
                 <p className="text-xs text-muted-foreground">
@@ -184,7 +185,7 @@ export default function IngestPage() {
                   onClick={() => fileInputRef.current?.click()}
                   className="flex flex-col items-center gap-3 p-8 border-2 border-dashed rounded-lg cursor-pointer hover:border-primary transition-colors"
                 >
-                  <CloudUploadIcon className="h-8 w-8 text-muted-foreground" />
+                  <HugeiconsIcon icon={CloudUploadIcon} size={32} className="text-muted-foreground" />
                   {file ? (
                     <span className="text-sm font-medium">{file.name}</span>
                   ) : (

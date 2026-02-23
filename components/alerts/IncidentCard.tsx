@@ -6,7 +6,8 @@ import type { Doc } from "@/convex/_generated/dataModel";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Camera01Icon, Clock01Icon, CheckmarkCircle01Icon } from "@hugeicons/react";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { Camera01Icon, Clock01Icon, CheckmarkCircle01Icon } from "@hugeicons/core-free-icons";
 
 interface IncidentCardProps {
   incident: Doc<"incidents">;
@@ -63,7 +64,7 @@ export function IncidentCard({ incident, compact }: IncidentCardProps) {
             onClick={() => markAsRead({ id: incident._id })}
             title="Mark as read"
           >
-            <CheckmarkCircle01Icon className="h-4 w-4" />
+            <HugeiconsIcon icon={CheckmarkCircle01Icon} size={16} />
           </Button>
         )}
       </div>
@@ -71,12 +72,12 @@ export function IncidentCard({ incident, compact }: IncidentCardProps) {
       <div className="flex items-center gap-4 text-xs text-muted-foreground">
         {camera && (
           <div className="flex items-center gap-1">
-            <Camera01Icon className="h-3.5 w-3.5" />
+            <HugeiconsIcon icon={Camera01Icon} size={14} />
             {camera.name}
           </div>
         )}
         <div className="flex items-center gap-1">
-          <Clock01Icon className="h-3.5 w-3.5" />
+          <HugeiconsIcon icon={Clock01Icon} size={14} />
           {formatTime(incident.clipStart)} – {formatTime(incident.clipEnd)}
         </div>
         <span>{new Date(incident.detectedAt).toLocaleString()}</span>

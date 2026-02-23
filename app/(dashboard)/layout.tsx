@@ -10,7 +10,15 @@ import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
-import { Camera01Icon, Search01Icon, Alert01Icon, Settings01Icon, DashboardSpeed01Icon, LogoutSquare01Icon } from "@hugeicons/react";
+import { HugeiconsIcon } from "@hugeicons/react";
+import {
+  Camera01Icon,
+  Search01Icon,
+  Alert01Icon,
+  Settings01Icon,
+  DashboardSpeed01Icon,
+  LogoutSquare01Icon,
+} from "@hugeicons/core-free-icons";
 
 const navItems = [
   { href: "/dashboard", label: "Dashboard", icon: DashboardSpeed01Icon },
@@ -80,7 +88,7 @@ export default function DashboardLayout({
                     : "text-muted-foreground hover:bg-muted hover:text-foreground"
                 }`}
               >
-                <Icon className="h-4 w-4 shrink-0" />
+                <HugeiconsIcon icon={Icon} size={16} className="shrink-0" />
                 <span>{label}</span>
                 {label === "Alerts" && (unreadIncidents?.length ?? 0) > 0 && (
                   <Badge variant="destructive" className="ml-auto text-xs px-1.5 py-0">
@@ -101,7 +109,7 @@ export default function DashboardLayout({
             className="w-full justify-start gap-3 text-muted-foreground"
             onClick={handleSignOut}
           >
-            <LogoutSquare01Icon className="h-4 w-4" />
+            <HugeiconsIcon icon={LogoutSquare01Icon} size={16} />
             Sign out
           </Button>
         </div>

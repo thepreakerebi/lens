@@ -2,7 +2,8 @@ import Link from "next/link";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import type { Doc } from "@/convex/_generated/dataModel";
-import { Camera01Icon, Location01Icon } from "@hugeicons/react";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { Camera01Icon, Location01Icon } from "@hugeicons/core-free-icons";
 
 interface CameraCardProps {
   camera: Doc<"cameras">;
@@ -14,7 +15,7 @@ export function CameraCard({ camera }: CameraCardProps) {
       <Card className="p-5 flex flex-col gap-4 hover:border-primary/50 transition-colors cursor-pointer">
         <div className="flex items-start justify-between">
           <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
-            <Camera01Icon className="h-5 w-5 text-primary" />
+            <HugeiconsIcon icon={Camera01Icon} size={20} className="text-primary" />
           </div>
           <Badge
             variant={camera.status === "active" ? "default" : "secondary"}
@@ -27,7 +28,7 @@ export function CameraCard({ camera }: CameraCardProps) {
         <div className="flex flex-col gap-1">
           <span className="font-semibold text-sm">{camera.name}</span>
           <div className="flex items-center gap-1 text-xs text-muted-foreground">
-            <Location01Icon className="h-3 w-3" />
+            <HugeiconsIcon icon={Location01Icon} size={12} />
             {camera.location}
           </div>
         </div>
