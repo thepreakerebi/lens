@@ -18,7 +18,10 @@ export default function SignInPage() {
     try {
       await authClient.signIn.social({
         provider: "google",
-        callbackURL: "/dashboard",
+        callbackURL:
+          typeof window !== "undefined"
+            ? `${window.location.origin}/dashboard`
+            : `${process.env.NEXT_PUBLIC_SITE_URL ?? ""}/dashboard`,
         fetchOptions: {
           onSuccess: async () => {
             // Sync user profile so cron alert emails can resolve the address

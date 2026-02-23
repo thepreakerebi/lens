@@ -1,5 +1,6 @@
 "use client";
 
+import { useMemo } from "react";
 import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { StatsCard } from "@/components/dashboard/StatsCard";
@@ -17,12 +18,16 @@ export default function DashboardPage() {
   const recentIncidents = useQuery(api.alerts.listIncidents, { unreadOnly: false });
   const searchHistory = useQuery(api.search.getHistory);
 
+  // Stable timestamp for "today" / "this week" windows; computed once per mount
+  // eslint-disable-next-line react-hooks/purity -- Date.now() used intentionally for dashboard time windows
+  const now = useMemo(() => Date.now(), []);
+
   const unreadCount = recentIncidents?.filter((i) => !i.isRead).length ?? 0;
   const todayIncidents = recentIncidents?.filter(
-    (i) => i.detectedAt > Date.now() - 86_400_000
+    (i) => i.detectedAt > now - 86_400_000
   ).length ?? 0;
   const thisWeekSearches = searchHistory?.filter(
-    (q) => q._creationTime > Date.now() - 7 * 86_400_000
+    (q) => q._creationTime > now - 7 * 86_400_000
   ).length ?? 0;
 
   const last5Incidents = recentIncidents?.slice(0, 5);
@@ -74,11 +79,11 @@ export default function DashboardPage() {
       <div>
         <div className="flex items-center justify-between mb-3">
           <h2 className="text-base font-semibold">Recent Incidents</h2>
-          {unreadCount > 0 && (
+          {unreadCount > 0 ? (
             <span className="text-xs text-muted-foreground">
               {unreadCount} unread
             </span>
-          )}
+          ) : null}
         </div>
         {last5Incidents === undefined ? (
           <div className="flex flex-col gap-3">
