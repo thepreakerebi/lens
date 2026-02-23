@@ -36,7 +36,7 @@ export default function DashboardPage() {
     <article className="p-6 flex flex-col gap-6 max-w-5xl">
       <header>
         <h1 className="text-2xl font-bold">Dashboard</h1>
-        <p className="text-muted-foreground text-sm mt-1">
+        <p className="text-muted-foreground text-base mt-1">
           Real-time overview of your cameras and incidents.
         </p>
       </header>
@@ -77,11 +77,11 @@ export default function DashboardPage() {
 
       <section aria-labelledby="recent-incidents-heading">
         <header className="flex items-center justify-between mb-3">
-          <h2 id="recent-incidents-heading" className="text-base font-semibold">
+          <h2 id="recent-incidents-heading" className="text-lg font-semibold">
             Recent Incidents
           </h2>
           {unreadCount > 0 ? (
-            <small className="text-xs text-muted-foreground">
+            <small className="text-sm text-muted-foreground">
               {unreadCount} unread
             </small>
           ) : null}
@@ -95,7 +95,7 @@ export default function DashboardPage() {
             ))}
           </ul>
         ) : last5Incidents.length === 0 ? (
-          <p className="text-sm text-muted-foreground">
+          <p className="text-base text-muted-foreground">
             No incidents yet. Incidents appear here when alert rules match.
           </p>
         ) : (

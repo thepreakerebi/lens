@@ -43,8 +43,8 @@ export default function SignInPage() {
   return (
     <Card className="w-full max-w-sm p-8 flex flex-col gap-6">
       <header className="flex flex-col gap-2 text-center">
-        <h1 className="text-2xl font-bold tracking-tight">Lens</h1>
-        <p className="text-muted-foreground text-sm">
+        <h1 className="text-3xl font-bold tracking-tight">Lens</h1>
+        <p className="text-muted-foreground text-base">
           AI-powered CCTV monitoring. Sign in to continue.
         </p>
       </header>
@@ -80,7 +80,7 @@ export default function SignInPage() {
         {loading ? "Signing in…" : "Sign in with Google"}
       </Button>
 
-      <p className="text-center text-xs text-muted-foreground">
+      <p className="text-center text-sm text-muted-foreground">
         By signing in you agree to our terms of service.
       </p>
     </Card>

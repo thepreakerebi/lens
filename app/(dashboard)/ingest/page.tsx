@@ -98,7 +98,7 @@ export default function IngestPage() {
               id="camera"
               value={cameraId}
               onChange={(e) => setCameraId(e.target.value)}
-              className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+              className="flex h-12 w-full rounded-md border border-input bg-transparent px-3 py-2 text-base shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
             >
               <option value="">Select a camera…</option>
               {readyCameras.map((c: Doc<"cameras">) => (
@@ -108,7 +108,7 @@ export default function IngestPage() {
               ))}
             </select>
             {cameras && cameras.length > 0 && readyCameras.length === 0 && (
-              <p className="text-xs text-yellow-600">
+              <p className="text-sm text-yellow-600">
                 Cameras are still creating their Twelve Labs index. Please wait a moment.
               </p>
             )}

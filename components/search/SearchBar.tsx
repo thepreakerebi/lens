@@ -61,7 +61,7 @@ export function SearchBar({
         <select
           value={cameraId}
           onChange={(e) => setCameraId(e.target.value)}
-          className="h-9 rounded-md border border-input bg-transparent px-3 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring shrink-0"
+          className="h-12 rounded-md border border-input bg-transparent px-3 py-2 text-base shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring shrink-0"
         >
           <option value="">All cameras</option>
           {cameras.map((c: Doc<"cameras">) => (

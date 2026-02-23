@@ -12,7 +12,7 @@ export function StatsCard({ label, value, icon, highlight }: StatsCardProps) {
   return (
     <Card className={`p-5 flex flex-col gap-3 ${highlight ? "border-destructive/50" : ""}`}>
       <header className="flex items-center justify-between">
-        <small className="text-sm text-muted-foreground">{label}</small>
+        <small className="text-base text-muted-foreground">{label}</small>
         <figure
           className={`w-8 h-8 rounded-md flex items-center justify-center m-0 ${
             highlight ? "bg-destructive/10" : "bg-primary/10"

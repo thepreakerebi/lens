@@ -128,7 +128,7 @@ export default function DashboardLayout({
             <SidebarGroupContent>
               <Button
                 variant="ghost"
-                size="sm"
+                size="default"
                 className="w-full justify-start gap-3 text-muted-foreground"
                 onClick={handleSignOut}
               >
