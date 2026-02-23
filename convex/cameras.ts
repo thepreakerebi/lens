@@ -124,8 +124,8 @@ export const initIndex = internalAction({
       body: JSON.stringify({
         index_name: `lens-${cameraId}`,
         models: [
-          { model_name: "marengo2.7", model_options: ["visual", "conversation", "text_in_video", "logo"] },
-          { model_name: "pegasus1.2", model_options: ["visual", "conversation"] },
+          { model_name: "marengo2.7", model_options: ["visual", "audio"] },
+          { model_name: "pegasus1.2", model_options: ["visual", "audio"] },
         ],
       }),
     });
