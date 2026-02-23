@@ -116,22 +116,17 @@ export const ingestByUrl = action({
       }
     );
 
-    // Submit to Twelve Labs
+    // Submit to Twelve Labs (v1.3 tasks API)
     const apiKey = process.env.TWELVE_LABS_API_KEY!;
-    const res = await fetch(
-      `https://api.twelvelabs.io/v1.3/indexes/${camera.twelveLabsIndexId}/videos`,
-      {
-        method: "POST",
-        headers: {
-          "x-api-key": apiKey,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          url: sourceUrl,
-          transcription_url: null,
-        }),
-      }
-    );
+    const form = new FormData();
+    form.append("index_id", camera.twelveLabsIndexId);
+    form.append("video_url", sourceUrl);
+
+    const res = await fetch("https://api.twelvelabs.io/v1.3/tasks", {
+      method: "POST",
+      headers: { "x-api-key": apiKey },
+      body: form,
+    });
 
     if (!res.ok) {
       const err = await res.text();
@@ -143,7 +138,7 @@ export const ingestByUrl = action({
       return { videoId, error: "Ingest failed" };
     }
 
-    const data = await res.json();
+    const data = (await res.json()) as { _id: string };
     const taskId: string = data._id;
 
     await ctx.runMutation(internal.videos.updateVideoStatus, {
@@ -194,17 +189,15 @@ export const ingestDirectUpload = action({
     }
 
     const apiKey = process.env.TWELVE_LABS_API_KEY!;
-    const res = await fetch(
-      `https://api.twelvelabs.io/v1.3/indexes/${camera.twelveLabsIndexId}/videos`,
-      {
-        method: "POST",
-        headers: {
-          "x-api-key": apiKey,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ url: fileUrl }),
-      }
-    );
+    const form = new FormData();
+    form.append("index_id", camera.twelveLabsIndexId);
+    form.append("video_url", fileUrl);
+
+    const res = await fetch("https://api.twelvelabs.io/v1.3/tasks", {
+      method: "POST",
+      headers: { "x-api-key": apiKey },
+      body: form,
+    });
 
     if (!res.ok) {
       const err = await res.text();
@@ -216,7 +209,7 @@ export const ingestDirectUpload = action({
       return { videoId, error: "Ingest failed" };
     }
 
-    const data = await res.json();
+    const data = (await res.json()) as { _id: string };
     const taskId: string = data._id;
 
     await ctx.runMutation(internal.videos.updateVideoStatus, {
@@ -243,7 +236,7 @@ export const pollAllPending = internalAction({
 
       const apiKey = process.env.TWELVE_LABS_API_KEY!;
       const res = await fetch(
-        `https://api.twelvelabs.io/v1.3/indexes/${camera.twelveLabsIndexId}/videos/${video.twelveLabsVideoId}`,
+        `https://api.twelvelabs.io/v1.3/tasks/${video.twelveLabsVideoId}`,
         {
           headers: { "x-api-key": apiKey },
         }
@@ -251,14 +244,20 @@ export const pollAllPending = internalAction({
 
       if (!res.ok) continue;
 
-      const data = await res.json();
+      const data = (await res.json()) as {
+        status: string;
+        metadata?: { duration?: number };
+        system_metadata?: { duration?: number };
+      };
       const status: string = data.status;
 
       if (status === "ready") {
+        const duration =
+          data.metadata?.duration ?? data.system_metadata?.duration;
         await ctx.runMutation(internal.videos.updateVideoStatus, {
           videoId: video._id,
           indexingStatus: "ready",
-          duration: data.metadata?.duration,
+          duration,
         });
       } else if (status === "failed") {
         await ctx.runMutation(internal.videos.updateVideoStatus, {

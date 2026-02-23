@@ -25,27 +25,20 @@ import {
 } from "@/components/ui/select";
 import { useRouter } from "next/navigation";
 import { HugeiconsIcon } from "@hugeicons/react";
-import {
-  CloudUploadIcon,
-  LinkSquare01Icon,
-  VideoReplayIcon,
-} from "@hugeicons/core-free-icons";
+import { CloudUploadIcon, VideoReplayIcon } from "@hugeicons/core-free-icons";
 
 export function IngestVideoModal() {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [cameraId, setCameraId] = useState<string>("");
   const [title, setTitle] = useState("");
-  const [url, setUrl] = useState("");
   const [file, setFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [tab, setTab] = useState<"url" | "upload">("url");
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const cameras = useQuery(api.cameras.list);
   const generateUploadUrl = useMutation(api.videos.generateUploadUrl);
-  const ingestByUrl = useAction(api.videos.ingestByUrl);
   const ingestDirectUpload = useAction(api.videos.ingestDirectUpload);
 
   const readyCameras = cameras?.filter((c: Doc<"cameras">) => c.twelveLabsIndexId) ?? [];
@@ -56,36 +49,13 @@ export function IngestVideoModal() {
 
   const resetForm = () => {
     setTitle("");
-    setUrl("");
     setFile(null);
     setError(null);
-    setTab("url");
   };
 
   const handleOpenChange = (nextOpen: boolean) => {
     setOpen(nextOpen);
     if (!nextOpen) resetForm();
-  };
-
-  const handleUrlIngest = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!cameraId || !title || !url) return;
-    setLoading(true);
-    setError(null);
-    try {
-      await ingestByUrl({
-        cameraId: cameraId as Id<"cameras">,
-        title,
-        sourceUrl: url,
-      });
-      setOpen(false);
-      resetForm();
-      router.push(`/cameras/${cameraId}`);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Ingest failed");
-    } finally {
-      setLoading(false);
-    }
   };
 
   const handleUploadIngest = async (e: React.FormEvent) => {
@@ -96,7 +66,7 @@ export function IngestVideoModal() {
     try {
       const uploadUrl = await generateUploadUrl();
       const res = await fetch(uploadUrl, {
-        method: "PUT",
+        method: "POST",
         headers: { "Content-Type": file.type },
         body: file,
       });
@@ -179,84 +149,33 @@ export function IngestVideoModal() {
             />
           </fieldset>
 
-          <nav className="flex rounded-md border overflow-hidden w-fit" aria-label="Input method">
-            {(["url", "upload"] as const).map((t) => (
-              <button
-                key={t}
-                type="button"
-                onClick={() => setTab(t)}
-                className={`px-4 py-1.5 text-sm transition-colors ${
-                  tab === t
-                    ? "bg-primary text-primary-foreground"
-                    : "text-muted-foreground hover:bg-muted"
-                }`}
+          <form onSubmit={handleUploadIngest} className="flex flex-col gap-4">
+            <fieldset className="flex flex-col gap-1.5 border-none p-0 m-0">
+              <Label htmlFor="modal-video-file">Video File</Label>
+              <p className="text-xs text-muted-foreground">
+                Select a video file from your device. MP4, MOV supported. Max 200 MB.
+              </p>
+              <label
+                htmlFor="modal-video-file"
+                className="flex flex-col items-center gap-3 p-6 border-2 border-dashed rounded-lg cursor-pointer hover:border-primary transition-colors"
               >
-                {t === "url" ? "URL" : "Upload"}
-              </button>
-            ))}
-          </nav>
-
-          {tab === "url" ? (
-            <form onSubmit={handleUrlIngest} className="flex flex-col gap-4">
-              <fieldset className="flex flex-col gap-1.5 border-none p-0 m-0">
-                <Label htmlFor="modal-url">Video URL</Label>
-                <p className="text-xs text-muted-foreground">
-                  Direct link to a video file (MP4, MOV, etc.). Up to 4 GB.
-                </p>
-                <section className="flex gap-2" aria-hidden="true">
-                  <Input
-                    id="modal-url"
-                    value={url}
-                    onChange={(e) => setUrl(e.target.value)}
-                    className="flex-1"
-                  />
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => window.open(url, "_blank")}
-                    disabled={!url}
-                  >
-                    <HugeiconsIcon icon={LinkSquare01Icon} size={16} />
-                  </Button>
-                </section>
-              </fieldset>
-              {error && <p className="text-sm text-destructive">{error}</p>}
-              <Button
-                type="submit"
-                disabled={loading || !cameraId || !title || !url}
-              >
-                {loading ? "Ingesting…" : "Ingest Video"}
-              </Button>
-            </form>
-          ) : (
-            <form onSubmit={handleUploadIngest} className="flex flex-col gap-4">
-              <fieldset className="flex flex-col gap-1.5 border-none p-0 m-0">
-                <Label htmlFor="modal-video-file">Video File</Label>
-                <p className="text-xs text-muted-foreground">
-                  Select a video file from your device. MP4, MOV supported.
-                </p>
-                <label
-                  htmlFor="modal-video-file"
-                  className="flex flex-col items-center gap-3 p-6 border-2 border-dashed rounded-lg cursor-pointer hover:border-primary transition-colors"
-                >
-                  <HugeiconsIcon icon={CloudUploadIcon} size={32} className="text-muted-foreground" />
-                  {file ? (
-                    <strong className="text-sm font-medium">{file.name}</strong>
-                  ) : (
-                    <small className="text-sm text-muted-foreground">
-                      Click to select a video file
-                    </small>
-                  )}
-                </label>
-                <input
-                  id="modal-video-file"
-                  ref={fileInputRef}
-                  type="file"
-                  accept="video/*"
-                  className="hidden"
-                  onChange={(e) => setFile(e.target.files?.[0] ?? null)}
-                />
+                <HugeiconsIcon icon={CloudUploadIcon} size={32} className="text-muted-foreground" />
+                {file ? (
+                  <strong className="text-sm font-medium">{file.name}</strong>
+                ) : (
+                  <small className="text-sm text-muted-foreground">
+                    Click to select a video file
+                  </small>
+                )}
+              </label>
+              <input
+                id="modal-video-file"
+                ref={fileInputRef}
+                type="file"
+                accept="video/*"
+                className="hidden"
+                onChange={(e) => setFile(e.target.files?.[0] ?? null)}
+              />
               </fieldset>
               {error && <p className="text-sm text-destructive">{error}</p>}
               <Button
@@ -265,8 +184,7 @@ export function IngestVideoModal() {
               >
                 {loading ? "Uploading…" : "Upload & Ingest"}
               </Button>
-            </form>
-          )}
+          </form>
         </section>
       </DialogContent>
     </Dialog>
