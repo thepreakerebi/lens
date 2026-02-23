@@ -102,7 +102,6 @@ export default function DashboardLayout({
                       <SidebarMenuButton
                         render={<Link href={href} />}
                         isActive={isActive}
-                        tooltip={label}
                       >
                         <HugeiconsIcon icon={Icon} size={16} className="shrink-0" />
                         {label}
