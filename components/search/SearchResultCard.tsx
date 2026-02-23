@@ -2,11 +2,13 @@
 
 import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
-import type { Doc } from "@/convex/_generated/dataModel";
+import type { Doc, Id } from "@/convex/_generated/dataModel";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { VideoReplayIcon, Clock01Icon } from "@hugeicons/core-free-icons";
+import { Clock01Icon } from "@hugeicons/core-free-icons";
+import { AnalyzeVideoDialog } from "./AnalyzeVideoDialog";
+import { VideoPlayer } from "@/components/video/VideoPlayer";
 
 interface SearchResultCardProps {
   result: Doc<"searchResults">;
@@ -18,33 +20,73 @@ function formatTime(seconds: number) {
   return `${m}:${s}`;
 }
 
+function confidenceBadgeVariant(c?: string) {
+  if (c === "high") return "default" as const;
+  if (c === "medium") return "secondary" as const;
+  return "outline" as const;
+}
+
 export function SearchResultCard({ result }: SearchResultCardProps) {
-  const video = useQuery(api.videos.get, { id: result.videoId });
+  const video = useQuery(
+    api.videos.get,
+    result.videoId ? { id: result.videoId as Id<"videos"> } : "skip"
+  );
+
+  const title =
+    video?.title ??
+    (result.twelveLabsVideoId
+      ? `Clip · ${result.twelveLabsVideoId.slice(0, 8)}…`
+      : "Video clip");
 
   return (
-    <Card className="p-4 flex flex-col gap-3">
-      <header className="flex items-start justify-between gap-3">
-        <section className="flex items-center gap-2">
-          <HugeiconsIcon icon={VideoReplayIcon} size={16} className="text-muted-foreground shrink-0" aria-hidden />
-          <strong className="text-sm font-medium">
-            {video?.title ?? "Loading…"}
-          </strong>
-        </section>
-        <Badge variant="outline" className="text-xs shrink-0">
-          Score: {(result.score * 100).toFixed(0)}%
-        </Badge>
-      </header>
+    <Card className="overflow-hidden flex flex-col">
+      {/* Video player */}
+      <VideoPlayer
+        videoId={result.videoId as Id<"videos"> | undefined}
+        twelveLabsVideoId={result.twelveLabsVideoId}
+        twelveLabsIndexId={result.twelveLabsIndexId}
+        startTime={result.start}
+        endTime={result.end}
+      />
 
-      <p className="flex items-center gap-2 text-xs text-muted-foreground m-0">
-        <HugeiconsIcon icon={Clock01Icon} size={14} aria-hidden />
-        {formatTime(result.start)} – {formatTime(result.end)}
-      </p>
+      {/* Metadata */}
+      <section className="p-3 flex flex-col gap-2">
+        <header className="flex items-start justify-between gap-2">
+          <strong className="text-sm font-medium leading-snug">{title}</strong>
+          <div className="flex items-center gap-1.5 shrink-0">
+            {result.confidence && (
+              <Badge
+                variant={confidenceBadgeVariant(result.confidence)}
+                className="text-xs capitalize"
+              >
+                {result.confidence}
+              </Badge>
+            )}
+            <Badge variant="outline" className="text-xs">
+              {(result.score * 100).toFixed(0)}%
+            </Badge>
+            {result.videoId && video ? (
+              <AnalyzeVideoDialog
+                videoId={result.videoId as Id<"videos">}
+                videoTitle={video.title}
+                start={result.start}
+                end={result.end}
+              />
+            ) : null}
+          </div>
+        </header>
 
-      {result.pegasusSummary && (
-        <p className="text-xs text-muted-foreground leading-relaxed border-t pt-2">
-          {result.pegasusSummary}
+        <p className="flex items-center gap-1.5 text-xs text-muted-foreground m-0">
+          <HugeiconsIcon icon={Clock01Icon} size={13} aria-hidden />
+          {formatTime(result.start)} – {formatTime(result.end)}
         </p>
-      )}
+
+        {result.pegasusSummary && (
+          <p className="text-xs text-muted-foreground leading-relaxed border-t pt-2 mt-1">
+            {result.pegasusSummary}
+          </p>
+        )}
+      </section>
     </Card>
   );
 }

@@ -11,6 +11,14 @@ crons.interval(
   {}
 );
 
+// Every 5 minutes: sync video_id for ready videos that had task ID stored (fixes search mapping)
+crons.interval(
+  "sync ready video ids",
+  { minutes: 5 },
+  internal.videos.syncReadyVideoIds,
+  {}
+);
+
 // Every 15 minutes: run alert rules against newly-ready videos, create incidents
 crons.interval(
   "run alert checks",

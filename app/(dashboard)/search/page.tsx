@@ -7,14 +7,16 @@ import type { Doc, Id } from "@/convex/_generated/dataModel";
 import { SearchBar } from "@/components/search/SearchBar";
 import { SearchResultCard } from "@/components/search/SearchResultCard";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 
 export default function SearchPage() {
   const [activeQueryId, setActiveQueryId] = useState<Id<"searchQueries"> | null>(null);
   const [searching, setSearching] = useState(false);
+  const [syncing, setSyncing] = useState(false);
 
   const searchHistory = useQuery(api.search.getHistory);
+  const syncVideoIds = useAction(api.videos.syncVideoIdsForSearch);
   const results = useQuery(
     api.search.getResults,
     activeQueryId ? { queryId: activeQueryId } : "skip"
@@ -24,6 +26,16 @@ export default function SearchPage() {
   const handleSearch = async (queryId: Id<"searchQueries">) => {
     setActiveQueryId(queryId);
     setSearching(false);
+  };
+
+  const handleSync = async () => {
+    setSyncing(true);
+    try {
+      await syncVideoIds({});
+      setActiveQueryId(null);
+    } finally {
+      setSyncing(false);
+    }
   };
 
   return (
@@ -44,21 +56,40 @@ export default function SearchPage() {
       <section className="flex gap-6">
         <section className="flex-1 flex flex-col gap-3" aria-label="Search results">
           {searching ? (
-            Array.from({ length: 4 }).map((_, i) => (
-              <Skeleton key={i} className="h-28 rounded-lg" />
-            ))
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {Array.from({ length: 4 }).map((_, i) => (
+                <Skeleton key={i} className="aspect-video rounded-lg" />
+              ))}
+            </div>
           ) : results === undefined && activeQueryId !== null ? (
-            Array.from({ length: 4 }).map((_, i) => (
-              <Skeleton key={i} className="h-28 rounded-lg" />
-            ))
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {Array.from({ length: 4 }).map((_, i) => (
+                <Skeleton key={i} className="aspect-video rounded-lg" />
+              ))}
+            </div>
           ) : results && results.length > 0 ? (
-            results.map((result: Doc<"searchResults">) => (
-              <SearchResultCard key={result._id} result={result} />
-            ))
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {results.map((result: Doc<"searchResults">) => (
+                <SearchResultCard key={result._id} result={result} />
+              ))}
+            </div>
           ) : activeQueryId ? (
-            <p className="text-sm text-muted-foreground">
-              No matching clips found. Try a different query.
-            </p>
+            <section className="flex flex-col gap-3">
+              <p className="text-sm text-muted-foreground">
+                No matching clips found. Try a different query.
+              </p>
+              <p className="text-xs text-muted-foreground">
+                If you recently indexed footage and it appears on Twelve Labs playground, the search index may need syncing.
+              </p>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleSync}
+                disabled={syncing}
+              >
+                {syncing ? "Syncing…" : "Sync indexed videos"}
+              </Button>
+            </section>
           ) : (
             <p className="text-sm text-muted-foreground">
               Enter a query above to search your indexed footage.

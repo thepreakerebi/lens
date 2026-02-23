@@ -39,7 +39,10 @@ export default defineSchema({
 
   searchResults: defineTable({
     queryId: v.id("searchQueries"),
-    videoId: v.id("videos"),
+    videoId: v.optional(v.id("videos")),        // may be absent if video not in Convex DB
+    twelveLabsVideoId: v.optional(v.string()),   // raw TL video ID for direct lookup
+    twelveLabsIndexId: v.optional(v.string()),   // which TL index this came from
+    confidence: v.optional(v.string()),          // "high" | "medium" | "low"
     start: v.number(),
     end: v.number(),
     score: v.number(),

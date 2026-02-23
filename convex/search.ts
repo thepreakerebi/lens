@@ -57,15 +57,10 @@ export const naturalLanguageSearch = action({
       const camera = await ctx.runQuery(internal.cameras.getInternal, {
         id: cameraId,
       });
-      if (!camera) {
-        throw new ConvexError("Camera not found");
-      }
-      if (camera.userId !== user._id) {
+      if (!camera) throw new ConvexError("Camera not found");
+      if (camera.userId !== user._id)
         throw new ConvexError("Not authorized to search this camera");
-      }
-      if (camera.twelveLabsIndexId) {
-        indexIds = [camera.twelveLabsIndexId];
-      }
+      if (camera.twelveLabsIndexId) indexIds = [camera.twelveLabsIndexId];
     } else {
       const cameras = await ctx.runQuery(
         internal.search.getUserCamerasInternal,
@@ -76,9 +71,23 @@ export const naturalLanguageSearch = action({
         .filter((id: string | undefined): id is string => !!id);
     }
 
+    // Fallback: fetch all indexes on the account from Twelve Labs directly
+    if (indexIds.length === 0) {
+      const idxRes = await fetch(
+        "https://api.twelvelabs.io/v1.3/indexes?page_limit=50",
+        { headers: { "x-api-key": apiKey } }
+      );
+      if (idxRes.ok) {
+        const idxData = (await idxRes.json()) as {
+          data?: Array<{ _id: string }>;
+        };
+        indexIds = (idxData.data ?? []).map((i) => i._id);
+      }
+    }
+
     if (indexIds.length === 0) {
       throw new ConvexError(
-        "No indexed cameras found. Please add cameras and ingest footage first."
+        "No indexes found on your Twelve Labs account. Please ingest footage first."
       );
     }
 
@@ -86,43 +95,45 @@ export const naturalLanguageSearch = action({
       video_id: string;
       start: number;
       end: number;
-      score: number;
+      score?: number;
+      confidence?: string;
     };
     const allClips: Array<TLClip & { indexId: string }> = [];
 
     for (const indexId of indexIds) {
+      const form = new FormData();
+      form.append("index_id", indexId);
+      form.append("query_text", queryText);
+      form.append("search_options", "visual");
+      form.append("search_options", "audio");
+      form.append("threshold", "low");
+      form.append("page_limit", "20");
+
       const res = await fetch("https://api.twelvelabs.io/v1.3/search", {
         method: "POST",
-        headers: {
-          "x-api-key": apiKey,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          index_id: indexId,
-          query_text: queryText,
-          search_options: ["visual", "conversation", "text_in_video", "logo"],
-          threshold: "medium",
-          page_limit: 10,
-        }),
+        headers: { "x-api-key": apiKey },
+        body: form,
       });
 
-      if (!res.ok) continue;
+      if (!res.ok) {
+        const errText = await res.text();
+        console.error(`TL search failed for index ${indexId}:`, errText);
+        continue;
+      }
       const data = await res.json();
       const clips: TLClip[] = data.data ?? [];
       allClips.push(...clips.map((c) => ({ ...c, indexId })));
     }
 
-    // Sort by score descending and take top 20
-    allClips.sort((a, b) => b.score - a.score);
+    // Sort by score descending
+    allClips.sort((a, b) => (b.score ?? 0) - (a.score ?? 0));
     const topClips = allClips.slice(0, 20);
 
-    // Map TL video IDs → Convex video IDs
+    // Try to map TL video IDs → Convex video IDs (best-effort, not required)
     const videosByTlId: Record<string, Id<"videos">> = {};
     const tlVideoIds = [...new Set(topClips.map((c) => c.video_id))];
     for (const tlId of tlVideoIds) {
-      const video = await ctx.runQuery(internal.search.getVideoByTlId, {
-        tlId,
-      });
+      const video = await ctx.runQuery(internal.search.getVideoByTlId, { tlId });
       if (video) videosByTlId[tlId] = video._id;
     }
 
@@ -138,25 +149,26 @@ export const naturalLanguageSearch = action({
 
     for (let i = 0; i < topClips.length; i++) {
       const clip = topClips[i];
-      const videoId = videosByTlId[clip.video_id];
-      if (!videoId) continue;
 
       // Optionally fetch Pegasus summary for top 3 results
       let pegasusSummary: string | undefined;
       if (i < 3) {
         try {
-          const sumRes = await fetch("https://api.twelvelabs.io/v1.3/generate", {
-            method: "POST",
-            headers: {
-              "x-api-key": apiKey,
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              video_id: clip.video_id,
-              type: "summary",
-              prompt: `Describe what's happening between ${clip.start}s and ${clip.end}s in this video clip.`,
-            }),
-          });
+          const sumRes = await fetch(
+            "https://api.twelvelabs.io/v1.3/generate",
+            {
+              method: "POST",
+              headers: {
+                "x-api-key": apiKey,
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                video_id: clip.video_id,
+                type: "summary",
+                prompt: `Describe what's happening between ${clip.start}s and ${clip.end}s in this video clip.`,
+              }),
+            }
+          );
           if (sumRes.ok) {
             const sumData = await sumRes.json();
             pegasusSummary = sumData.data ?? sumData.summary;
@@ -166,17 +178,72 @@ export const naturalLanguageSearch = action({
         }
       }
 
+      // Save result regardless of whether a Convex video record exists
       await ctx.runMutation(internal.search.saveResult, {
         queryId: searchQueryId,
-        videoId,
+        videoId: videosByTlId[clip.video_id],
+        twelveLabsVideoId: clip.video_id,
+        twelveLabsIndexId: clip.indexId,
+        confidence: clip.confidence,
         start: clip.start,
         end: clip.end,
-        score: clip.score,
+        score: clip.score ?? 0,
         pegasusSummary,
       });
     }
 
     return searchQueryId;
+  },
+});
+
+// ── Analyze (Pegasus) ────────────────────────────────────────────────────────
+
+export const analyzeVideo = action({
+  args: {
+    videoId: v.id("videos"),
+    prompt: v.string(),
+    start: v.optional(v.number()),
+    end: v.optional(v.number()),
+  },
+  handler: async (ctx, { videoId, prompt, start, end }) => {
+    const user = await authComponent.getAuthUser(ctx);
+    if (!user) throw new ConvexError("Not authenticated");
+
+    const video = await ctx.runQuery(internal.videos.getInternal, { id: videoId });
+    if (!video) throw new ConvexError("Video not found");
+    if (video.userId !== user._id)
+      throw new ConvexError("Not authorized to analyze this video");
+    if (!video.twelveLabsVideoId)
+      throw new ConvexError("Video is not indexed yet. Please wait for indexing to complete.");
+    if (video.indexingStatus !== "ready")
+      throw new ConvexError("Video is not ready for analysis yet.");
+
+    const apiKey = process.env.TWELVE_LABS_API_KEY!;
+    const effectivePrompt =
+      start !== undefined && end !== undefined
+        ? `Analyze the video segment from ${start} to ${end} seconds. ${prompt}`
+        : prompt;
+
+    const res = await fetch("https://api.twelvelabs.io/v1.3/generate", {
+      method: "POST",
+      headers: {
+        "x-api-key": apiKey,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        video_id: video.twelveLabsVideoId,
+        type: "summary",
+        prompt: effectivePrompt,
+      }),
+    });
+
+    if (!res.ok) {
+      const err = await res.text();
+      throw new ConvexError(`Analysis failed: ${err}`);
+    }
+
+    const data = (await res.json()) as { data?: string; summary?: string };
+    return data.data ?? data.summary ?? "";
   },
 });
 
@@ -217,7 +284,10 @@ export const saveQuery = internalMutation({
 export const saveResult = internalMutation({
   args: {
     queryId: v.id("searchQueries"),
-    videoId: v.id("videos"),
+    videoId: v.optional(v.id("videos")),
+    twelveLabsVideoId: v.optional(v.string()),
+    twelveLabsIndexId: v.optional(v.string()),
+    confidence: v.optional(v.string()),
     start: v.number(),
     end: v.number(),
     score: v.number(),

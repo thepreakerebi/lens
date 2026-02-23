@@ -11,6 +11,58 @@ import {
 import { internal } from "./_generated/api";
 import { authComponent } from "./auth";
 
+// ── Stream URL ────────────────────────────────────────────────────────────────
+
+/** Returns the HLS stream URL for a video. Accepts either a Convex videoId or raw TL IDs. */
+export const getStreamUrl = action({
+  args: {
+    videoId: v.optional(v.id("videos")),
+    twelveLabsVideoId: v.optional(v.string()),
+    twelveLabsIndexId: v.optional(v.string()),
+  },
+  handler: async (ctx, { videoId, twelveLabsVideoId, twelveLabsIndexId }) => {
+    const user = await authComponent.getAuthUser(ctx);
+    if (!user) throw new ConvexError("Not authenticated");
+
+    let tlVideoId = twelveLabsVideoId;
+    let tlIndexId = twelveLabsIndexId;
+
+    if (videoId) {
+      const video = await ctx.runQuery(internal.videos.getInternal, { id: videoId });
+      if (!video || video.userId !== user._id)
+        throw new ConvexError("Video not found");
+      tlVideoId = video.twelveLabsVideoId;
+      const camera = await ctx.runQuery(internal.cameras.getInternal, {
+        id: video.cameraId,
+      });
+      tlIndexId = camera?.twelveLabsIndexId;
+    }
+
+    if (!tlVideoId || !tlIndexId)
+      throw new ConvexError("Video is not indexed yet.");
+
+    const apiKey = process.env.TWELVE_LABS_API_KEY!;
+    const res = await fetch(
+      `https://api.twelvelabs.io/v1.3/indexes/${tlIndexId}/videos/${tlVideoId}`,
+      { headers: { "x-api-key": apiKey } }
+    );
+    if (!res.ok) {
+      const err = await res.text();
+      throw new ConvexError(`Failed to get stream URL: ${err}`);
+    }
+    const data = (await res.json()) as {
+      hls?: { video_url?: string; thumbnail_url?: string };
+      metadata?: { duration?: number; filename?: string };
+    };
+    return {
+      videoUrl: data.hls?.video_url ?? null,
+      thumbnailUrl: data.hls?.thumbnail_url ?? null,
+      duration: data.metadata?.duration ?? null,
+      filename: data.metadata?.filename ?? null,
+    };
+  },
+});
+
 // ── Queries ───────────────────────────────────────────────────────────────────
 
 export const listByCamera = query({
@@ -37,6 +89,11 @@ export const get = query({
     if (!video || video.userId !== user._id) return null;
     return video;
   },
+});
+
+export const getInternal = internalQuery({
+  args: { id: v.id("videos") },
+  handler: async (ctx, { id }) => ctx.db.get(id),
 });
 
 // ── Mutations ─────────────────────────────────────────────────────────────────
@@ -138,13 +195,15 @@ export const ingestByUrl = action({
       return { videoId, error: "Ingest failed" };
     }
 
-    const data = (await res.json()) as { _id: string };
+    const data = (await res.json()) as { _id: string; video_id?: string };
     const taskId: string = data._id;
+    // Store video_id when available (search uses it); otherwise poll will set it when ready
+    const twelveLabsVideoId = data.video_id ?? taskId;
 
     await ctx.runMutation(internal.videos.updateVideoStatus, {
       videoId,
       indexingStatus: "indexing",
-      twelveLabsVideoId: taskId,
+      twelveLabsVideoId,
     });
 
     return { videoId };
@@ -209,13 +268,14 @@ export const ingestDirectUpload = action({
       return { videoId, error: "Ingest failed" };
     }
 
-    const data = (await res.json()) as { _id: string };
+    const data = (await res.json()) as { _id: string; video_id?: string };
     const taskId: string = data._id;
+    const twelveLabsVideoId = data.video_id ?? taskId;
 
     await ctx.runMutation(internal.videos.updateVideoStatus, {
       videoId,
       indexingStatus: "indexing",
-      twelveLabsVideoId: taskId,
+      twelveLabsVideoId,
     });
 
     return { videoId };
@@ -246,6 +306,7 @@ export const pollAllPending = internalAction({
 
       const data = (await res.json()) as {
         status: string;
+        video_id?: string;
         metadata?: { duration?: number };
         system_metadata?: { duration?: number };
       };
@@ -254,9 +315,12 @@ export const pollAllPending = internalAction({
       if (status === "ready") {
         const duration =
           data.metadata?.duration ?? data.system_metadata?.duration;
+        // Store video_id (not task ID) so search can map results to our videos
+        const twelveLabsVideoId = data.video_id ?? video.twelveLabsVideoId;
         await ctx.runMutation(internal.videos.updateVideoStatus, {
           videoId: video._id,
           indexingStatus: "ready",
+          twelveLabsVideoId,
           duration,
         });
       } else if (status === "failed") {
@@ -276,5 +340,92 @@ export const listIndexing = internalQuery({
       .query("videos")
       .withIndex("by_status", (q) => q.eq("indexingStatus", "indexing"))
       .collect();
+  },
+});
+
+/** Public action: manually trigger sync for ready videos (fixes search mapping). */
+export const syncVideoIdsForSearch = action({
+  args: {},
+  handler: async (ctx) => {
+    const user = await authComponent.getAuthUser(ctx);
+    if (!user) throw new ConvexError("Not authenticated");
+    await ctx.runAction(internal.videos.syncReadyVideoIds, {});
+  },
+});
+
+/** Manually set Twelve Labs video ID (e.g. from playground response). */
+export const setVideoTwelveLabsId = mutation({
+  args: {
+    videoId: v.id("videos"),
+    twelveLabsVideoId: v.string(),
+  },
+  handler: async (ctx, { videoId, twelveLabsVideoId }) => {
+    const user = await authComponent.getAuthUser(ctx);
+    if (!user) throw new ConvexError("Not authenticated");
+    const video = await ctx.db.get(videoId);
+    if (!video || video.userId !== user._id)
+      throw new ConvexError("Video not found or not authorized");
+    await ctx.db.patch(videoId, { twelveLabsVideoId });
+  },
+});
+
+/** Sync twelveLabsVideoId by fetching video IDs from Twelve Labs index. */
+export const syncReadyVideoIds = internalAction({
+  args: {},
+  handler: async (ctx) => {
+    const cameras = await ctx.runQuery(internal.videos.listCamerasWithIndex);
+    const apiKey = process.env.TWELVE_LABS_API_KEY!;
+    for (const camera of cameras) {
+      if (!camera.twelveLabsIndexId) continue;
+      try {
+        const res = await fetch(
+          `https://api.twelvelabs.io/v1.3/indexes/${camera.twelveLabsIndexId}/videos?page_limit=50`,
+          { headers: { "x-api-key": apiKey } }
+        );
+        if (!res.ok) continue;
+        const data = (await res.json()) as { data?: Array<{ _id: string }> };
+        const tlVideoIds = (data.data ?? []).map((v) => v._id);
+        if (tlVideoIds.length === 0) continue;
+
+        const ourVideos = await ctx.runQuery(
+          internal.videos.listReadyByCamera,
+          { cameraId: camera._id }
+        );
+        // Match by order: newest first (index returns desc by created_at)
+        for (let i = 0; i < Math.min(ourVideos.length, tlVideoIds.length); i++) {
+          const video = ourVideos[i];
+          const tlId = tlVideoIds[i];
+          if (video.twelveLabsVideoId !== tlId) {
+            await ctx.runMutation(internal.videos.updateVideoStatus, {
+              videoId: video._id,
+              indexingStatus: "ready",
+              twelveLabsVideoId: tlId,
+            });
+          }
+        }
+      } catch {
+        // Skip on error
+      }
+    }
+  },
+});
+
+export const listCamerasWithIndex = internalQuery({
+  args: {},
+  handler: async (ctx) => {
+    const cameras = await ctx.db.query("cameras").collect();
+    return cameras.filter((c) => c.twelveLabsIndexId != null);
+  },
+});
+
+export const listReadyByCamera = internalQuery({
+  args: { cameraId: v.id("cameras") },
+  handler: async (ctx, { cameraId }) => {
+    const videos = await ctx.db
+      .query("videos")
+      .withIndex("by_camera", (q) => q.eq("cameraId", cameraId))
+      .order("desc")
+      .take(50);
+    return videos.filter((v) => v.indexingStatus === "ready");
   },
 });
