@@ -22,7 +22,7 @@ export default async function RootLayout({
 
   return (
     <html lang="en" className={nunitoSans.variable}>
-      <body className="antialiased">
+      <body className="antialiased" suppressHydrationWarning>
         <ConvexClientProvider initialToken={token}>
           <TooltipProvider>{children}</TooltipProvider>
         </ConvexClientProvider>
