@@ -32,6 +32,7 @@ import {
   SidebarProvider,
   SidebarTrigger,
 } from "@/components/ui/sidebar";
+import { IngestVideoModal } from "@/components/ingest/IngestVideoModal";
 
 const navItems = [
   { href: "/dashboard", label: "Dashboard", icon: DashboardSpeed01Icon },
@@ -118,6 +119,12 @@ export default function DashboardLayout({
                   );
                 })}
               </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+
+          <SidebarGroup>
+            <SidebarGroupContent>
+              <IngestVideoModal />
             </SidebarGroupContent>
           </SidebarGroup>
         </SidebarContent>

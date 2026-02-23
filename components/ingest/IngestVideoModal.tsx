@@ -1,36 +1,40 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
-import { useQuery, useMutation, useAction } from "convex/react";
+import { useState, useRef } from "react";
+import { useMutation, useAction, useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import type { Doc, Id } from "@/convex/_generated/dataModel";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card } from "@/components/ui/card";
 import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbList,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
-} from "@/components/ui/breadcrumb";
-import { useSearchParams, useRouter } from "next/navigation";
-import Link from "next/link";
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { useRouter } from "next/navigation";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { CloudUploadIcon, LinkSquare01Icon } from "@hugeicons/core-free-icons";
+import {
+  CloudUploadIcon,
+  LinkSquare01Icon,
+  VideoReplayIcon,
+} from "@hugeicons/core-free-icons";
 
-export default function IngestPage() {
-  const searchParams = useSearchParams();
+export function IngestVideoModal() {
   const router = useRouter();
-
-  const cameraIdFromUrl = searchParams.get("camera") ?? "";
-  const cameras = useQuery(api.cameras.list);
-  const generateUploadUrl = useMutation(api.videos.generateUploadUrl);
-  const ingestByUrl = useAction(api.videos.ingestByUrl);
-  const ingestDirectUpload = useAction(api.videos.ingestDirectUpload);
-
+  const [open, setOpen] = useState(false);
+  const [cameraId, setCameraId] = useState<string>("");
   const [title, setTitle] = useState("");
   const [url, setUrl] = useState("");
   const [file, setFile] = useState<File | null>(null);
@@ -39,34 +43,44 @@ export default function IngestPage() {
   const [tab, setTab] = useState<"url" | "upload">("url");
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const selectedCamera = cameras?.find(
-    (c: Doc<"cameras">) => c._id === cameraIdFromUrl
-  );
+  const cameras = useQuery(api.cameras.list);
+  const generateUploadUrl = useMutation(api.videos.generateUploadUrl);
+  const ingestByUrl = useAction(api.videos.ingestByUrl);
+  const ingestDirectUpload = useAction(api.videos.ingestDirectUpload);
 
-  useEffect(() => {
-    if (!cameraIdFromUrl) {
-      router.replace("/cameras");
-      return;
-    }
-    if (!cameras) return;
-    const camera = cameras.find((c: Doc<"cameras">) => c._id === cameraIdFromUrl);
-    if (!camera) {
-      router.replace("/cameras");
-    }
-  }, [cameraIdFromUrl, cameras, router]);
+  const readyCameras = cameras?.filter((c: Doc<"cameras">) => c.twelveLabsIndexId) ?? [];
+  const cameraItems = readyCameras.map((c: Doc<"cameras">) => ({
+    value: c._id,
+    label: `${c.name} — ${c.location}`,
+  }));
+
+  const resetForm = () => {
+    setTitle("");
+    setUrl("");
+    setFile(null);
+    setError(null);
+    setTab("url");
+  };
+
+  const handleOpenChange = (nextOpen: boolean) => {
+    setOpen(nextOpen);
+    if (!nextOpen) resetForm();
+  };
 
   const handleUrlIngest = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!cameraIdFromUrl || !title || !url) return;
+    if (!cameraId || !title || !url) return;
     setLoading(true);
     setError(null);
     try {
       await ingestByUrl({
-        cameraId: cameraIdFromUrl as Id<"cameras">,
+        cameraId: cameraId as Id<"cameras">,
         title,
         sourceUrl: url,
       });
-      router.push(`/cameras/${cameraIdFromUrl}`);
+      setOpen(false);
+      resetForm();
+      router.push(`/cameras/${cameraId}`);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Ingest failed");
     } finally {
@@ -76,7 +90,7 @@ export default function IngestPage() {
 
   const handleUploadIngest = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!cameraIdFromUrl || !title || !file) return;
+    if (!cameraId || !title || !file) return;
     setLoading(true);
     setError(null);
     try {
@@ -89,11 +103,13 @@ export default function IngestPage() {
       if (!res.ok) throw new Error("Upload failed");
       const { storageId } = await res.json();
       await ingestDirectUpload({
-        cameraId: cameraIdFromUrl as Id<"cameras">,
+        cameraId: cameraId as Id<"cameras">,
         title,
         storageId: storageId as Id<"_storage">,
       });
-      router.push(`/cameras/${cameraIdFromUrl}`);
+      setOpen(false);
+      resetForm();
+      router.push(`/cameras/${cameraId}`);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Upload failed");
     } finally {
@@ -101,52 +117,63 @@ export default function IngestPage() {
     }
   };
 
-  if (!cameraIdFromUrl || !selectedCamera) {
-    return (
-      <section className="p-6" aria-label="Loading">
-        <p className="text-muted-foreground text-sm">Redirecting…</p>
-      </section>
-    );
-  }
-
   return (
-    <article className="p-6 flex flex-col gap-6 max-w-2xl">
-      <Breadcrumb>
-        <BreadcrumbList>
-          <BreadcrumbItem>
-            <BreadcrumbLink asChild>
-              <Link href="/cameras">Cameras</Link>
-            </BreadcrumbLink>
-          </BreadcrumbItem>
-          <BreadcrumbSeparator />
-          <BreadcrumbItem>
-            <BreadcrumbLink asChild>
-              <Link href={`/cameras/${cameraIdFromUrl}`}>{selectedCamera.name}</Link>
-            </BreadcrumbLink>
-          </BreadcrumbItem>
-          <BreadcrumbSeparator />
-          <BreadcrumbItem>
-            <BreadcrumbPage>Ingest Footage</BreadcrumbPage>
-          </BreadcrumbItem>
-        </BreadcrumbList>
-      </Breadcrumb>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
+      <DialogTrigger
+        render={
+          <Button variant="default" size="default" className="w-full justify-start gap-3">
+            <HugeiconsIcon icon={VideoReplayIcon} size={16} />
+            Ingest video
+          </Button>
+        }
+      />
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle>Ingest video</DialogTitle>
+          <DialogDescription>
+            Add video footage to a camera&apos;s index for AI-powered search and alerting.
+          </DialogDescription>
+        </DialogHeader>
 
-      <header>
-        <h1 className="text-2xl font-bold">Add video to {selectedCamera.name}</h1>
-        <p className="text-muted-foreground text-sm mt-1">
-          Add video footage to {selectedCamera.name} for AI-powered search and alerting.
-        </p>
-      </header>
-
-      <Card className="p-6">
-        <section className="flex flex-col gap-5">
+        <section className="flex flex-col gap-4">
           <fieldset className="flex flex-col gap-1.5 border-none p-0 m-0">
-            <Label htmlFor="title">Title</Label>
+            <Label htmlFor="modal-camera">Camera</Label>
+            <p className="text-xs text-muted-foreground">
+              Select which camera this footage belongs to.
+            </p>
+            <Select
+              value={cameraId || null}
+              onValueChange={(v) => setCameraId(v ?? "")}
+              items={cameraItems}
+              disabled={readyCameras.length === 0}
+            >
+              <SelectTrigger id="modal-camera" className="w-full">
+                <SelectValue placeholder="Select a camera…" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectGroup>
+                  {readyCameras.map((c: Doc<"cameras">) => (
+                    <SelectItem key={c._id} value={c._id}>
+                      {c.name} — {c.location}
+                    </SelectItem>
+                  ))}
+                </SelectGroup>
+              </SelectContent>
+            </Select>
+            {cameras && cameras.length > 0 && readyCameras.length === 0 && (
+              <p className="text-sm text-yellow-600">
+                Cameras are still being set up. Please wait a moment.
+              </p>
+            )}
+          </fieldset>
+
+          <fieldset className="flex flex-col gap-1.5 border-none p-0 m-0">
+            <Label htmlFor="modal-title">Title</Label>
             <p className="text-xs text-muted-foreground">
               A short label for this video (e.g. date and time).
             </p>
             <Input
-              id="title"
+              id="modal-title"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
             />
@@ -172,13 +199,13 @@ export default function IngestPage() {
           {tab === "url" ? (
             <form onSubmit={handleUrlIngest} className="flex flex-col gap-4">
               <fieldset className="flex flex-col gap-1.5 border-none p-0 m-0">
-                <Label htmlFor="url">Video URL</Label>
+                <Label htmlFor="modal-url">Video URL</Label>
                 <p className="text-xs text-muted-foreground">
                   Direct link to a video file (MP4, MOV, etc.). Up to 4 GB.
                 </p>
                 <section className="flex gap-2" aria-hidden="true">
                   <Input
-                    id="url"
+                    id="modal-url"
                     value={url}
                     onChange={(e) => setUrl(e.target.value)}
                     className="flex-1"
@@ -197,7 +224,7 @@ export default function IngestPage() {
               {error && <p className="text-sm text-destructive">{error}</p>}
               <Button
                 type="submit"
-                disabled={loading || !title || !url}
+                disabled={loading || !cameraId || !title || !url}
               >
                 {loading ? "Ingesting…" : "Ingest Video"}
               </Button>
@@ -205,13 +232,13 @@ export default function IngestPage() {
           ) : (
             <form onSubmit={handleUploadIngest} className="flex flex-col gap-4">
               <fieldset className="flex flex-col gap-1.5 border-none p-0 m-0">
-                <Label htmlFor="video-file">Video File</Label>
+                <Label htmlFor="modal-video-file">Video File</Label>
                 <p className="text-xs text-muted-foreground">
                   Select a video file from your device. MP4, MOV supported.
                 </p>
                 <label
-                  htmlFor="video-file"
-                  className="flex flex-col items-center gap-3 p-8 border-2 border-dashed rounded-lg cursor-pointer hover:border-primary transition-colors"
+                  htmlFor="modal-video-file"
+                  className="flex flex-col items-center gap-3 p-6 border-2 border-dashed rounded-lg cursor-pointer hover:border-primary transition-colors"
                 >
                   <HugeiconsIcon icon={CloudUploadIcon} size={32} className="text-muted-foreground" />
                   {file ? (
@@ -223,7 +250,7 @@ export default function IngestPage() {
                   )}
                 </label>
                 <input
-                  id="video-file"
+                  id="modal-video-file"
                   ref={fileInputRef}
                   type="file"
                   accept="video/*"
@@ -234,14 +261,14 @@ export default function IngestPage() {
               {error && <p className="text-sm text-destructive">{error}</p>}
               <Button
                 type="submit"
-                disabled={loading || !title || !file}
+                disabled={loading || !cameraId || !title || !file}
               >
                 {loading ? "Uploading…" : "Upload & Ingest"}
               </Button>
             </form>
           )}
         </section>
-      </Card>
-    </article>
+      </DialogContent>
+    </Dialog>
   );
 }
