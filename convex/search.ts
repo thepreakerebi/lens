@@ -57,7 +57,13 @@ export const naturalLanguageSearch = action({
       const camera = await ctx.runQuery(internal.cameras.getInternal, {
         id: cameraId,
       });
-      if (camera?.twelveLabsIndexId) {
+      if (!camera) {
+        throw new ConvexError("Camera not found");
+      }
+      if (camera.userId !== user._id) {
+        throw new ConvexError("Not authorized to search this camera");
+      }
+      if (camera.twelveLabsIndexId) {
         indexIds = [camera.twelveLabsIndexId];
       }
     } else {

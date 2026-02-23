@@ -18,6 +18,8 @@ export const listByCamera = query({
   handler: async (ctx, { cameraId }) => {
     const user = await authComponent.getAuthUser(ctx);
     if (!user) return [];
+    const camera = await ctx.db.get(cameraId);
+    if (!camera || camera.userId !== user._id) return [];
     return ctx.db
       .query("videos")
       .withIndex("by_camera", (q) => q.eq("cameraId", cameraId))
@@ -96,9 +98,11 @@ export const ingestByUrl = action({
     const user = await authComponent.getAuthUser(ctx);
     if (!user) throw new ConvexError("Not authenticated");
 
-    // Get camera's Twelve Labs index ID
     const camera = await ctx.runQuery(internal.cameras.getInternal, { id: cameraId });
-    if (!camera?.twelveLabsIndexId)
+    if (!camera) throw new ConvexError("Camera not found");
+    if (camera.userId !== user._id)
+      throw new ConvexError("Not authorized to ingest to this camera");
+    if (!camera.twelveLabsIndexId)
       throw new ConvexError("Camera index not ready yet. Please wait a moment.");
 
     // Create the video record
@@ -163,7 +167,10 @@ export const ingestDirectUpload = action({
     if (!user) throw new ConvexError("Not authenticated");
 
     const camera = await ctx.runQuery(internal.cameras.getInternal, { id: cameraId });
-    if (!camera?.twelveLabsIndexId)
+    if (!camera) throw new ConvexError("Camera not found");
+    if (camera.userId !== user._id)
+      throw new ConvexError("Not authorized to ingest to this camera");
+    if (!camera.twelveLabsIndexId)
       throw new ConvexError("Camera index not ready yet.");
 
     const videoId: Id<"videos"> = await ctx.runMutation(

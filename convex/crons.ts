@@ -7,14 +7,16 @@ const crons = cronJobs();
 crons.interval(
   "poll indexing status",
   { minutes: 5 },
-  internal.videos.pollAllPending
+  internal.videos.pollAllPending,
+  {}
 );
 
 // Every 15 minutes: run alert rules against newly-ready videos, create incidents
 crons.interval(
   "run alert checks",
   { minutes: 15 },
-  internal.alerts.runAlertCheckForNewVideos
+  internal.alerts.runAlertCheckForNewVideos,
+  {} // no userId = process all users
 );
 
 export default crons;

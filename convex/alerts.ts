@@ -211,12 +211,14 @@ export const getAllUsers = internalQuery({
   },
 });
 
-// ── Alert check action (called by cron) ───────────────────────────────────────
+// ── Alert check action (called by cron or on-demand) ───────────────────────────
 
 export const runAlertCheckForNewVideos = internalAction({
-  args: {},
-  handler: async (ctx) => {
-    // Check videos that became ready in the last 20 minutes (cron runs every 15 min)
+  args: {
+    /** When set, only process this user's videos. When omitted (cron), process all users. */
+    userId: v.optional(v.string()),
+  },
+  handler: async (ctx, { userId: scopeUserId }) => {
     const since = Date.now() - 20 * 60 * 1000;
     const recentVideos = await ctx.runQuery(
       internal.alerts.getReadyVideosSince,
@@ -225,7 +227,9 @@ export const runAlertCheckForNewVideos = internalAction({
 
     if (recentVideos.length === 0) return;
 
-    const userIds = await ctx.runQuery(internal.alerts.getAllUsers, {});
+    const userIds = scopeUserId
+      ? [scopeUserId]
+      : await ctx.runQuery(internal.alerts.getAllUsers, {});
 
     for (const userId of userIds) {
       const rules = await ctx.runQuery(internal.alerts.getActiveRulesForUser, {
@@ -355,6 +359,8 @@ export const runAlertCheck = action({
   handler: async (ctx) => {
     const user = await authComponent.getAuthUser(ctx);
     if (!user) throw new ConvexError("Not authenticated");
-    await ctx.runAction(internal.alerts.runAlertCheckForNewVideos, {});
+    await ctx.runAction(internal.alerts.runAlertCheckForNewVideos, {
+      userId: user._id,
+    });
   },
 });
