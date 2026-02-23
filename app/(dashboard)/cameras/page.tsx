@@ -34,8 +34,8 @@ export default function CamerasPage() {
         <section className="text-center py-16 text-muted-foreground" aria-label="Empty state">
           <p className="text-sm">No cameras yet.</p>
           <p className="text-xs mt-1">
-            Add your first camera to get started — a Twelve Labs index will be
-            created automatically.
+            Add your first camera to get started — an AI index will be created
+            automatically so you can search footage.
           </p>
         </section>
       ) : (

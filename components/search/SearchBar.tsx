@@ -7,6 +7,7 @@ import { api } from "@/convex/_generated/api";
 import type { Id, Doc } from "@/convex/_generated/dataModel";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Search01Icon } from "@hugeicons/core-free-icons";
 
@@ -55,13 +56,14 @@ export function SearchBar({
     }
   };
 
-  return (
-    <form onSubmit={handleSearch} className="flex gap-2">
+  const searchInput = (
+    <form onSubmit={handleSearch} className="flex gap-2 flex-1">
       {cameras && cameras.length > 0 && !compact && (
         <select
           value={cameraId}
           onChange={(e) => setCameraId(e.target.value)}
           className="h-12 rounded-md border border-input bg-transparent px-3 py-2 text-base shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring shrink-0"
+          aria-label="Filter by camera"
         >
           <option value="">All cameras</option>
           {cameras.map((c: Doc<"cameras">) => (
@@ -72,19 +74,32 @@ export function SearchBar({
         </select>
       )}
       <Input
-        placeholder={
-          compact
-            ? "Search footage…"
-            : 'e.g. "person climbing fence at night"'
-        }
+        id={compact ? undefined : "search-query"}
+        placeholder=""
         value={query}
         onChange={(e) => setQuery(e.target.value)}
         className="flex-1"
+        aria-label={compact ? "Search footage" : "Search query"}
       />
       <Button type="submit" disabled={loading || !query.trim()}>
         <HugeiconsIcon icon={Search01Icon} size={16} className="mr-2" />
         {loading ? "Searching…" : "Search"}
       </Button>
     </form>
+  );
+
+  if (compact) {
+    return searchInput;
+  }
+
+  return (
+    <fieldset className="flex flex-col gap-1.5 border-none p-0 m-0">
+      <Label htmlFor="search-query">Search</Label>
+      <p className="text-xs text-muted-foreground">
+        Describe what you&apos;re looking for (e.g. person climbing fence, car
+        in parking lot).
+      </p>
+      {searchInput}
+    </fieldset>
   );
 }

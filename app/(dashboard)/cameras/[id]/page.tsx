@@ -65,11 +65,11 @@ export default function CameraDetailPage({
           </Badge>
           {camera.twelveLabsIndexId ? (
             <small className="text-xs text-muted-foreground">
-              TL Index: {camera.twelveLabsIndexId.slice(0, 12)}…
+              AI search ready
             </small>
           ) : (
             <small className="text-xs text-yellow-600">
-              Creating Twelve Labs index…
+              Setting up AI search…
             </small>
           )}
         </section>

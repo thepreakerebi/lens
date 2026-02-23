@@ -10,7 +10,7 @@ const nunitoSans = Nunito_Sans({ variable: "--font-sans", subsets: ["latin"] });
 export const metadata: Metadata = {
   title: "Lens — AI-Powered CCTV Monitoring",
   description:
-    "Lens lets security operators query CCTV footage in plain English and receive automated incident alerts powered by Twelve Labs AI.",
+    "Lens lets security operators query CCTV footage in plain English and receive automated incident alerts powered by AI.",
 };
 
 export default async function RootLayout({

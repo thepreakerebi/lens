@@ -48,9 +48,11 @@ export function AlertRuleForm({ cameras, onSuccess }: AlertRuleFormProps) {
       <form onSubmit={handleSubmit} className="flex flex-col gap-4">
         <fieldset className="flex flex-col gap-1.5 border-none p-0 m-0">
           <Label htmlFor="rule-name">Rule name</Label>
+          <p className="text-xs text-muted-foreground">
+            A short name for this rule.
+          </p>
           <Input
             id="rule-name"
-            placeholder="e.g. Perimeter Breach"
             value={name}
             onChange={(e) => setName(e.target.value)}
           />
@@ -63,19 +65,21 @@ export function AlertRuleForm({ cameras, onSuccess }: AlertRuleFormProps) {
               (natural language)
             </small>
           </Label>
-          <Input
-            id="rule-description"
-            placeholder='e.g. "person climbing over fence or wall"'
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-          />
           <p className="text-xs text-muted-foreground">
             Describe what to detect. Lens searches your footage for this.
           </p>
+          <Input
+            id="rule-description"
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+          />
         </fieldset>
 
         <fieldset className="flex flex-col gap-1.5 border-none p-0 m-0">
           <Label htmlFor="rule-camera">Camera</Label>
+          <p className="text-xs text-muted-foreground">
+            Apply to a specific camera or all cameras.
+          </p>
           <select
             id="rule-camera"
             value={cameraId}
@@ -107,9 +111,11 @@ export function AlertRuleForm({ cameras, onSuccess }: AlertRuleFormProps) {
             Webhook URL{" "}
             <small className="text-muted-foreground font-normal">(optional)</small>
           </Label>
+          <p className="text-xs text-muted-foreground">
+            Receive alerts at this URL when the rule matches.
+          </p>
           <Input
             id="webhook"
-            placeholder="https://hooks.example.com/incidents"
             value={webhookUrl}
             onChange={(e) => setWebhookUrl(e.target.value)}
           />

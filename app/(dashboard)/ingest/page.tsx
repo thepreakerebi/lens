@@ -94,6 +94,9 @@ export default function IngestPage() {
         <section className="flex flex-col gap-5">
           <fieldset className="flex flex-col gap-1.5 border-none p-0 m-0">
             <Label htmlFor="camera">Camera</Label>
+            <p className="text-xs text-muted-foreground">
+              Select which camera this footage belongs to.
+            </p>
             <select
               id="camera"
               value={cameraId}
@@ -109,16 +112,18 @@ export default function IngestPage() {
             </select>
             {cameras && cameras.length > 0 && readyCameras.length === 0 && (
               <p className="text-sm text-yellow-600">
-                Cameras are still creating their Twelve Labs index. Please wait a moment.
+                Cameras are still being set up. Please wait a moment.
               </p>
             )}
           </fieldset>
 
           <fieldset className="flex flex-col gap-1.5 border-none p-0 m-0">
             <Label htmlFor="title">Title</Label>
+            <p className="text-xs text-muted-foreground">
+              A short label for this video (e.g. date and time).
+            </p>
             <Input
               id="title"
-              placeholder="e.g. Footage 2026-02-23 08:00"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
             />
@@ -144,10 +149,12 @@ export default function IngestPage() {
             <form onSubmit={handleUrlIngest} className="flex flex-col gap-4">
               <fieldset className="flex flex-col gap-1.5 border-none p-0 m-0">
                 <Label htmlFor="url">Video URL</Label>
+                <p className="text-xs text-muted-foreground">
+                  Direct link to a video file (MP4, MOV, etc.). Up to 4 GB.
+                </p>
                 <section className="flex gap-2" aria-hidden="true">
                   <Input
                     id="url"
-                    placeholder="https://example.com/footage.mp4"
                     value={url}
                     onChange={(e) => setUrl(e.target.value)}
                     className="flex-1"
@@ -162,9 +169,6 @@ export default function IngestPage() {
                     <HugeiconsIcon icon={LinkSquare01Icon} size={16} />
                   </Button>
                 </section>
-                <p className="text-xs text-muted-foreground">
-                  Direct video URL (MP4, MOV, etc.). Up to 4 GB.
-                </p>
               </fieldset>
               {error && <p className="text-sm text-destructive">{error}</p>}
               <Button
@@ -178,6 +182,9 @@ export default function IngestPage() {
             <form onSubmit={handleUploadIngest} className="flex flex-col gap-4">
               <fieldset className="flex flex-col gap-1.5 border-none p-0 m-0">
                 <Label htmlFor="video-file">Video File</Label>
+                <p className="text-xs text-muted-foreground">
+                  Select a video file from your device. MP4, MOV supported.
+                </p>
                 <label
                   htmlFor="video-file"
                   className="flex flex-col items-center gap-3 p-8 border-2 border-dashed rounded-lg cursor-pointer hover:border-primary transition-colors"

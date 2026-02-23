@@ -53,16 +53,19 @@ export function AddCameraDialog() {
         <DialogHeader>
           <DialogTitle className="text-lg">Add Camera</DialogTitle>
           <DialogDescription>
-            A Twelve Labs index will be created automatically.
+            An AI search index will be created automatically so you can search
+            and analyze footage.
           </DialogDescription>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
           <fieldset className="flex flex-col gap-1.5 border-none p-0 m-0">
             <Label htmlFor="name">Camera name</Label>
+            <p className="text-xs text-muted-foreground">
+              A short name to identify this camera.
+            </p>
             <Input
               id="name"
-              placeholder="e.g. Front Gate Camera"
               value={name}
               onChange={(e) => setName(e.target.value)}
               autoFocus
@@ -70,9 +73,11 @@ export function AddCameraDialog() {
           </fieldset>
           <fieldset className="flex flex-col gap-1.5 border-none p-0 m-0">
             <Label htmlFor="location">Location</Label>
+            <p className="text-xs text-muted-foreground">
+              Where the camera is positioned (e.g. building, floor, area).
+            </p>
             <Input
               id="location"
-              placeholder="e.g. Building A, Main Entrance"
               value={location}
               onChange={(e) => setLocation(e.target.value)}
             />
