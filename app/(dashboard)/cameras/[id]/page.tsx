@@ -23,11 +23,17 @@ import { ArrowLeft01Icon, VideoReplayIcon } from "@hugeicons/core-free-icons";
 import { AnalyzeVideoDialog } from "@/components/search/AnalyzeVideoDialog";
 import { VideoPlayer } from "@/components/video/VideoPlayer";
 
-const STATUS_COLORS = {
-  pending: "bg-yellow-100 text-yellow-800",
-  indexing: "bg-blue-100 text-blue-800",
-  ready: "bg-green-100 text-green-800",
-  failed: "bg-red-100 text-red-800",
+const STATUS_STYLES: Record<string, string> = {
+  pending: "bg-amber-500/15 text-amber-700 dark:text-amber-400 border-amber-500/20",
+  indexing: "bg-blue-500/15 text-blue-700 dark:text-blue-400 border-blue-500/20",
+  ready: "bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border-emerald-500/20",
+  failed: "bg-red-500/15 text-red-700 dark:text-red-400 border-red-500/20",
+};
+
+const STATUS_MESSAGES: Record<string, string> = {
+  pending: "Waiting to index…",
+  indexing: "Indexing in progress…",
+  failed: "Indexing failed.",
 };
 
 function VideoCard({ video }: { video: Doc<"videos"> }) {
@@ -35,48 +41,39 @@ function VideoCard({ video }: { video: Doc<"videos"> }) {
     video.indexingStatus === "ready" && !!video.twelveLabsVideoId;
 
   return (
-    <Card className="overflow-hidden flex flex-col">
-      <VideoPlayer
-        videoId={video._id}
-        startTime={0}
-      />
+    <Card className="overflow-hidden flex flex-col group !p-0 !gap-0">
+      <VideoPlayer videoId={video._id} startTime={0} />
 
-      <section className="p-3 flex flex-col gap-2">
-        <header className="flex items-start justify-between gap-2">
-          <strong className="text-sm font-medium leading-snug">{video.title}</strong>
+      <section className="p-3.5 flex flex-col gap-3">
+        <h3 className="text-sm font-semibold leading-snug truncate">{video.title}</h3>
+
+        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+          {video.duration !== undefined && (
+            <span>{formatDuration(video.duration)}</span>
+          )}
+
+          {video.duration !== undefined && (
+            <span className="text-border">·</span>
+          )}
+
           <Badge
-            className={
-              STATUS_COLORS[video.indexingStatus as keyof typeof STATUS_COLORS] +
-              " text-xs font-medium border-0 shrink-0"
-            }
             variant="outline"
+            className={`text-[11px] capitalize px-1.5 py-0 h-5 font-medium ${STATUS_STYLES[video.indexingStatus] ?? ""}`}
           >
             {video.indexingStatus}
           </Badge>
-        </header>
-
-        <div className="flex items-center justify-between gap-2">
-          {video.duration !== undefined ? (
-            <span className="text-xs text-muted-foreground">
-              {formatDuration(video.duration)}
-            </span>
-          ) : (
-            <span />
-          )}
-
-          {isPlayable ? (
-            <AnalyzeVideoDialog videoId={video._id} videoTitle={video.title} />
-          ) : null}
         </div>
 
-        {!isPlayable && video.indexingStatus !== "ready" && (
+        {!isPlayable && STATUS_MESSAGES[video.indexingStatus] && (
           <p className="text-xs text-muted-foreground italic">
-            {video.indexingStatus === "pending"
-              ? "Waiting to index…"
-              : video.indexingStatus === "indexing"
-              ? "Indexing in progress…"
-              : "Indexing failed."}
+            {STATUS_MESSAGES[video.indexingStatus]}
           </p>
+        )}
+
+        {isPlayable && (
+          <div className="pt-1 border-t">
+            <AnalyzeVideoDialog videoId={video._id} videoTitle={video.title} />
+          </div>
         )}
       </section>
     </Card>
