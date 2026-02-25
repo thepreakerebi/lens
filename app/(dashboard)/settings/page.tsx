@@ -43,10 +43,12 @@ export default function SettingsPage() {
       </header>
 
       <Tabs defaultValue="profile" className="flex flex-col gap-6">
-        <TabsList variant="line" className="w-fit">
-          <TabsTrigger value="profile">Profile</TabsTrigger>
-          <TabsTrigger value="alert-rules">Alert Rules</TabsTrigger>
-        </TabsList>
+        <header className="sticky top-0 z-10 -mx-6 px-6 py-4 bg-background border-b border-border">
+          <TabsList variant="line" className="w-fit">
+            <TabsTrigger value="profile">Profile</TabsTrigger>
+            <TabsTrigger value="alert-rules">Alert Rules</TabsTrigger>
+          </TabsList>
+        </header>
 
         <TabsContent value="profile" className="mt-0">
           <Card className="p-6 flex flex-col gap-6">
