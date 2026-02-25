@@ -128,6 +128,38 @@ export const getInternal = internalQuery({
   handler: async (ctx, { id }) => ctx.db.get(id),
 });
 
+export const remove = mutation({
+  args: { id: v.id("videos") },
+  handler: async (ctx, { id }) => {
+    const user = await authComponent.getAuthUser(ctx);
+    if (!user) throw new ConvexError("Not authenticated");
+
+    const video = await ctx.db.get(id);
+    if (!video || video.userId !== user._id)
+      throw new ConvexError("Video not found");
+
+    // Delete associated search results that reference this video
+    const searchResults = await ctx.db
+      .query("searchResults")
+      .filter((q) => q.eq(q.field("videoId"), id))
+      .collect();
+    for (const sr of searchResults) {
+      await ctx.db.delete(sr._id);
+    }
+
+    // Delete incidents for this video
+    const incidents = await ctx.db
+      .query("incidents")
+      .filter((q) => q.eq(q.field("videoId"), id))
+      .collect();
+    for (const incident of incidents) {
+      await ctx.db.delete(incident._id);
+    }
+
+    await ctx.db.delete(id);
+  },
+});
+
 // ── Mutations ─────────────────────────────────────────────────────────────────
 
 export const generateUploadUrl = mutation({

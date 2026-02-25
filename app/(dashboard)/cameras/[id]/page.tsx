@@ -1,7 +1,7 @@
 "use client";
 
-import { use } from "react";
-import { useQuery } from "convex/react";
+import { use, useState } from "react";
+import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import type { Doc, Id } from "@/convex/_generated/dataModel";
 import { useEffect } from "react";
@@ -12,10 +12,20 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { formatDuration } from "@/lib/utils";
 import Link from "next/link";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { VideoReplayIcon } from "@hugeicons/core-free-icons";
+import { VideoReplayIcon, Delete01Icon } from "@hugeicons/core-free-icons";
 import { AnalyzeVideoSheet } from "@/components/search/AnalyzeVideoSheet";
 import { VideoPlayer } from "@/components/video/VideoPlayer";
 import { useBreadcrumbs } from "@/components/providers/BreadcrumbProvider";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 const STATUS_STYLES: Record<string, string> = {
   pending: "bg-amber-500/15 text-amber-700 dark:text-amber-400 border-amber-500/20",
@@ -31,46 +41,96 @@ const STATUS_MESSAGES: Record<string, string> = {
 };
 
 function VideoCard({ video }: { video: Doc<"videos"> }) {
+  const [videoToDelete, setVideoToDelete] = useState<Doc<"videos"> | null>(null);
+  const removeVideo = useMutation(api.videos.remove);
   const isPlayable =
     video.indexingStatus === "ready" && !!video.twelveLabsVideoId;
 
   return (
-    <Card className="overflow-hidden flex flex-col group !p-0 !gap-0">
-      <VideoPlayer videoId={video._id} startTime={0} />
+    <>
+      <Card className="overflow-hidden flex flex-col group !p-0 !gap-0">
+        <VideoPlayer videoId={video._id} startTime={0} />
 
-      <section className="p-3.5 flex flex-col gap-3">
-        <h3 className="text-sm font-semibold leading-snug truncate">{video.title}</h3>
+        <section className="p-3.5 flex flex-col gap-3">
+          <header className="flex items-start justify-between gap-2">
+            <h3 className="text-sm font-semibold leading-snug truncate min-w-0 flex-1">
+              {video.title}
+            </h3>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8 text-destructive hover:text-destructive shrink-0"
+              onClick={() => setVideoToDelete(video)}
+              aria-label={`Delete video ${video.title}`}
+            >
+              <HugeiconsIcon icon={Delete01Icon} size={16} />
+            </Button>
+          </header>
 
-        <p className="flex items-center gap-2 text-xs text-muted-foreground m-0">
-          {video.duration !== undefined && (
-            <time dateTime={`PT${Math.round(video.duration)}S`}>{formatDuration(video.duration)}</time>
-          )}
+          <p className="flex items-center gap-2 text-xs text-muted-foreground m-0">
+            {video.duration !== undefined && (
+              <time dateTime={`PT${Math.round(video.duration)}S`}>{formatDuration(video.duration)}</time>
+            )}
 
-          {video.duration !== undefined && (
-            <small className="text-border" aria-hidden>·</small>
-          )}
+            {video.duration !== undefined && (
+              <small className="text-border" aria-hidden>·</small>
+            )}
 
-          <Badge
-            variant="outline"
-            className={`text-[11px] capitalize px-1.5 py-0 h-5 font-medium ${STATUS_STYLES[video.indexingStatus] ?? ""}`}
-          >
-            {video.indexingStatus}
-          </Badge>
-        </p>
-
-        {!isPlayable && STATUS_MESSAGES[video.indexingStatus] && (
-          <p className="text-xs text-muted-foreground italic">
-            {STATUS_MESSAGES[video.indexingStatus]}
+            <Badge
+              variant="outline"
+              className={`text-[11px] capitalize px-1.5 py-0 h-5 font-medium ${STATUS_STYLES[video.indexingStatus] ?? ""}`}
+            >
+              {video.indexingStatus}
+            </Badge>
           </p>
-        )}
 
-        {isPlayable && (
-          <footer className="pt-1 border-t">
-            <AnalyzeVideoSheet videoId={video._id} videoTitle={video.title} />
-          </footer>
-        )}
-      </section>
-    </Card>
+          {!isPlayable && STATUS_MESSAGES[video.indexingStatus] && (
+            <p className="text-xs text-muted-foreground italic">
+              {STATUS_MESSAGES[video.indexingStatus]}
+            </p>
+          )}
+
+          {isPlayable && (
+            <footer className="pt-1 border-t">
+              <AnalyzeVideoSheet videoId={video._id} videoTitle={video.title} />
+            </footer>
+          )}
+        </section>
+      </Card>
+
+      <AlertDialog
+        open={videoToDelete !== null}
+        onOpenChange={(open) => !open && setVideoToDelete(null)}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete video</AlertDialogTitle>
+            <AlertDialogDescription>
+              {videoToDelete ? (
+                <>
+                  Are you sure you want to delete &quot;{videoToDelete.title}&quot;?
+                  Associated search results and incidents will be removed. This action cannot be undone.
+                </>
+              ) : null}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-white hover:bg-destructive/90 hover:text-white"
+              onClick={() => {
+                if (videoToDelete) {
+                  removeVideo({ id: videoToDelete._id });
+                  setVideoToDelete(null);
+                }
+              }}
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
   );
 }
 

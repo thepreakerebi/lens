@@ -3,6 +3,7 @@ import {
   action,
   internalMutation,
   internalQuery,
+  mutation,
   query,
 } from "./_generated/server";
 import type { Doc, Id } from "./_generated/dataModel";
@@ -35,6 +36,27 @@ export const getResults = query({
       .query("searchResults")
       .withIndex("by_query", (q) => q.eq("queryId", queryId))
       .collect();
+  },
+});
+
+export const deleteQuery = mutation({
+  args: { queryId: v.id("searchQueries") },
+  handler: async (ctx, { queryId }) => {
+    const user = await authComponent.getAuthUser(ctx);
+    if (!user) throw new ConvexError("Not authenticated");
+
+    const searchQuery = await ctx.db.get(queryId);
+    if (!searchQuery || searchQuery.userId !== user._id)
+      throw new ConvexError("Search query not found");
+
+    const results = await ctx.db
+      .query("searchResults")
+      .withIndex("by_query", (q) => q.eq("queryId", queryId))
+      .collect();
+    for (const r of results) {
+      await ctx.db.delete(r._id);
+    }
+    await ctx.db.delete(queryId);
   },
 });
 

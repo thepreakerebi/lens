@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useMemo, useEffect, useRef } from "react";
-import { useQuery, useAction } from "convex/react";
+import { useQuery, useAction, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import type { Doc, Id } from "@/convex/_generated/dataModel";
 import { StatsCard } from "@/components/dashboard/StatsCard";
@@ -26,15 +26,28 @@ import {
   Search01Icon,
   TransactionHistoryIcon,
   Cancel01Icon,
+  Delete01Icon,
 } from "@hugeicons/core-free-icons";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 export default function DashboardPage() {
   const [activeQueryId, setActiveQueryId] = useState<Id<"searchQueries"> | null>(null);
   const [searching, setSearching] = useState(false);
   const [syncing, setSyncing] = useState(false);
   const [recentSearchesOpen, setRecentSearchesOpen] = useState(false);
+  const [queryToDelete, setQueryToDelete] = useState<Doc<"searchQueries"> | null>(null);
 
   const cameras = useQuery(api.cameras.list);
+  const deleteSearchQuery = useMutation(api.search.deleteQuery);
   const hasAnyVideos = useQuery(api.videos.hasAny);
   const recentIncidents = useQuery(api.alerts.listIncidents, { unreadOnly: false });
   const searchHistory = useQuery(api.search.getHistory);
@@ -240,20 +253,37 @@ export default function DashboardPage() {
             ) : (
               <ul className="flex flex-col gap-1 list-none p-0 m-0">
                 {searchHistory.map((q: Doc<"searchQueries">) => (
-                  <button
+                  <li
                     key={q._id}
-                    onClick={() => setActiveQueryId(q._id)}
-                    className={`text-left px-3 py-2 rounded text-xs transition-colors w-full ${
+                    className={`flex items-center gap-1 rounded text-xs transition-colors group/item ${
                       activeQueryId === q._id
                         ? "bg-primary text-primary-foreground"
                         : "text-muted-foreground hover:bg-muted"
                     }`}
                   >
-                    <p className="truncate m-0">{q.query}</p>
-                    <Badge variant="secondary" className="mt-0.5 text-xs px-1 py-0">
-                      {q.resultsCount} results
-                    </Badge>
-                  </button>
+                    <button
+                      type="button"
+                      onClick={() => setActiveQueryId(q._id)}
+                      className="flex-1 min-w-0 text-left px-3 py-2 rounded"
+                    >
+                      <p className="truncate m-0">{q.query}</p>
+                      <Badge variant="secondary" className="mt-0.5 text-xs px-1 py-0">
+                        {q.resultsCount} results
+                      </Badge>
+                    </button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-7 w-7 shrink-0 text-destructive hover:text-destructive"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setQueryToDelete(q);
+                      }}
+                      aria-label={`Delete search "${q.query}"`}
+                    >
+                      <HugeiconsIcon icon={Delete01Icon} size={14} />
+                    </Button>
+                  </li>
                 ))}
               </ul>
             )}
@@ -287,23 +317,41 @@ export default function DashboardPage() {
                 ) : (
                   <ul className="flex flex-col gap-1 list-none p-0 m-0">
                     {searchHistory.map((q: Doc<"searchQueries">) => (
-                      <button
+                      <li
                         key={q._id}
-                        onClick={() => {
-                          setActiveQueryId(q._id);
-                          setRecentSearchesOpen(false);
-                        }}
-                        className={`text-left px-3 py-2 rounded text-xs transition-colors w-full ${
+                        className={`flex items-center gap-1 rounded text-xs transition-colors group/item ${
                           activeQueryId === q._id
                             ? "bg-primary text-primary-foreground"
                             : "text-muted-foreground hover:bg-muted"
                         }`}
                       >
-                        <p className="truncate m-0">{q.query}</p>
-                        <Badge variant="secondary" className="mt-0.5 text-xs px-1 py-0">
-                          {q.resultsCount} results
-                        </Badge>
-                      </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setActiveQueryId(q._id);
+                            setRecentSearchesOpen(false);
+                          }}
+                          className="flex-1 min-w-0 text-left px-3 py-2 rounded"
+                        >
+                          <p className="truncate m-0">{q.query}</p>
+                          <Badge variant="secondary" className="mt-0.5 text-xs px-1 py-0">
+                            {q.resultsCount} results
+                          </Badge>
+                        </button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-7 w-7 shrink-0 text-destructive hover:text-destructive"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setQueryToDelete(q);
+                            setRecentSearchesOpen(false);
+                          }}
+                          aria-label={`Delete search "${q.query}"`}
+                        >
+                          <HugeiconsIcon icon={Delete01Icon} size={14} />
+                        </Button>
+                      </li>
                     ))}
                   </ul>
                 )}
@@ -346,6 +394,42 @@ export default function DashboardPage() {
           </ul>
         )}
       </section>
+
+      <AlertDialog
+        open={queryToDelete !== null}
+        onOpenChange={(open) => !open && setQueryToDelete(null)}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete search</AlertDialogTitle>
+            <AlertDialogDescription>
+              {queryToDelete ? (
+                <>
+                  Are you sure you want to delete the search &quot;{queryToDelete.query}&quot;?
+                  Its results will be removed. This action cannot be undone.
+                </>
+              ) : null}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-white hover:bg-destructive/90 hover:text-white"
+              onClick={() => {
+                if (queryToDelete) {
+                  deleteSearchQuery({ queryId: queryToDelete._id });
+                  if (activeQueryId === queryToDelete._id) {
+                    setActiveQueryId(null);
+                  }
+                  setQueryToDelete(null);
+                }
+              }}
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </article>
   );
 }
