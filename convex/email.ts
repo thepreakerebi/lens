@@ -26,10 +26,26 @@ export const sendIncidentAlert = internalAction({
     const profile = await ctx.runQuery(internal.email.getUserProfile, {
       userId: args.userId,
     });
-    if (!profile?.email) return;
+
+    if (!profile?.email) {
+      console.warn(
+        "[sendIncidentAlert] No email for user – userProfiles missing or empty. userId:",
+        args.userId,
+        "| Ensure syncProfile runs after sign-in (see auth/syncProfile)."
+      );
+      return;
+    }
+
+    const apiKey = process.env.RESEND_API_KEY;
+    if (!apiKey) {
+      console.error(
+        "[sendIncidentAlert] RESEND_API_KEY not set. Set it via: npx convex env set RESEND_API_KEY <your-key>"
+      );
+      return;
+    }
 
     const { Resend } = await import("resend");
-    const resend = new Resend(process.env.RESEND_API_KEY!);
+    const resend = new Resend(apiKey);
 
     const severityLabel =
       args.severity === "high" ? "HIGH" : args.severity === "medium" ? "MEDIUM" : "LOW";
@@ -47,8 +63,15 @@ export const sendIncidentAlert = internalAction({
           ? "#d97706"
           : "#2563eb";
 
-    await resend.emails.send({
-      from: "Lens Alerts <alerts@watchwise.app>",
+    const fromAddress = process.env.RESEND_FROM_EMAIL ?? "Lens Alerts <onboarding@resend.dev>";
+    if (!process.env.RESEND_FROM_EMAIL) {
+      console.warn(
+        "[sendIncidentAlert] RESEND_FROM_EMAIL not set. Using onboarding@resend.dev (Resend test domain – only sends to your Resend account email). Add a verified domain and set RESEND_FROM_EMAIL for production."
+      );
+    }
+
+    const { data, error } = await resend.emails.send({
+      from: fromAddress,
       to: [profile.email],
       subject: `[${severityLabel}] Incident detected – ${args.cameraName}`,
       html: `
@@ -70,5 +93,26 @@ export const sendIncidentAlert = internalAction({
         </div>
       `,
     });
+
+    if (error) {
+      console.error(
+        "[sendIncidentAlert] Resend send failed:",
+        JSON.stringify(error, null, 2),
+        "| userId:",
+        args.userId,
+        "| to:",
+        profile.email
+      );
+      return;
+    }
+
+    console.log(
+      "[sendIncidentAlert] Email sent successfully. id:",
+      data?.id,
+      "| to:",
+      profile.email,
+      "| rule:",
+      args.ruleName
+    );
   },
 });

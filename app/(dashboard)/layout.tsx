@@ -2,11 +2,11 @@
 
 import { useConvexAuth } from "convex/react";
 import { useRouter, usePathname } from "next/navigation";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import Link from "next/link";
 import { authClient } from "@/lib/auth-client";
 import { Badge } from "@/components/ui/badge";
-import { useQuery } from "convex/react";
+import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
@@ -131,6 +131,8 @@ export default function DashboardLayout({
   const router = useRouter();
   const pathname = usePathname();
   const { isAuthenticated, isLoading } = useConvexAuth();
+  const syncProfile = useMutation(api.auth.syncProfile);
+  const syncedRef = useRef(false);
   const unreadIncidents = useQuery(api.alerts.listIncidents, {
     unreadOnly: true,
   });
@@ -140,6 +142,22 @@ export default function DashboardLayout({
       router.replace("/sign-in");
     }
   }, [isAuthenticated, isLoading, router]);
+
+  // Sync user profile so alert emails can resolve the address (runs once per session)
+  useEffect(() => {
+    if (!isAuthenticated || syncedRef.current) return;
+    authClient.getSession().then((session) => {
+      const u = session?.data?.user;
+      if (u?.email) {
+        syncedRef.current = true;
+        syncProfile({
+          email: u.email,
+          name: u.name ?? undefined,
+          image: (u as { image?: string }).image ?? undefined,
+        }).catch(() => { syncedRef.current = false; });
+      }
+    });
+  }, [isAuthenticated, syncProfile]);
 
   if (isLoading) {
     return (

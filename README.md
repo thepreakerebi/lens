@@ -38,7 +38,8 @@ AI-powered CCTV monitoring platform for security operators. Built for the **BeOr
    - `BETTER_AUTH_SECRET`
    - `SITE_URL`
    - `TWELVE_LABS_API_KEY`
-   - `RESEND_API_KEY`
+   - `RESEND_API_KEY` — Required for incident email alerts. Get from [Resend](https://resend.com).
+   - `RESEND_FROM_EMAIL` (optional) — Sender address, e.g. `Lens Alerts <alerts@yourdomain.com>`. If unset, uses `onboarding@resend.dev` (Resend test domain; only sends to your Resend account email until you verify a domain).
 
 3. **Run Convex dev**
 

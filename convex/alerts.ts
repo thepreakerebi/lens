@@ -325,6 +325,14 @@ export const runAlertCheckForNewVideos = internalAction({
 
             // Send email if enabled
             if (rule.emailNotification) {
+              console.log(
+                "[runAlertCheck] Scheduling email for incident – userId:",
+                userId,
+                "rule:",
+                rule.name,
+                "camera:",
+                camera.name
+              );
               await ctx.runAction(internal.email.sendIncidentAlert, {
                 userId,
                 cameraName: camera.name,
