@@ -8,18 +8,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbList,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
-} from "@/components/ui/breadcrumb";
 import { useSearchParams, useRouter } from "next/navigation";
-import Link from "next/link";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { CloudUploadIcon } from "@hugeicons/core-free-icons";
+import { useBreadcrumbs } from "@/components/providers/BreadcrumbProvider";
 
 export default function IngestPage() {
   const searchParams = useSearchParams();
@@ -39,6 +31,19 @@ export default function IngestPage() {
   const selectedCamera = cameras?.find(
     (c: Doc<"cameras">) => c._id === cameraIdFromUrl
   );
+
+  const { setItems } = useBreadcrumbs();
+
+  useEffect(() => {
+    if (selectedCamera) {
+      setItems([
+        { label: "Cameras", href: "/cameras" },
+        { label: selectedCamera.name, href: `/cameras/${cameraIdFromUrl}` },
+        { label: "Ingest Footage" },
+      ]);
+    }
+    return () => setItems([]);
+  }, [selectedCamera, cameraIdFromUrl, setItems]);
 
   useEffect(() => {
     if (!cameraIdFromUrl) {
@@ -89,26 +94,6 @@ export default function IngestPage() {
 
   return (
     <article className="p-6 flex flex-col gap-6 max-w-2xl">
-      <Breadcrumb>
-        <BreadcrumbList>
-          <BreadcrumbItem>
-            <BreadcrumbLink asChild>
-              <Link href="/cameras">Cameras</Link>
-            </BreadcrumbLink>
-          </BreadcrumbItem>
-          <BreadcrumbSeparator />
-          <BreadcrumbItem>
-            <BreadcrumbLink asChild>
-              <Link href={`/cameras/${cameraIdFromUrl}`}>{selectedCamera.name}</Link>
-            </BreadcrumbLink>
-          </BreadcrumbItem>
-          <BreadcrumbSeparator />
-          <BreadcrumbItem>
-            <BreadcrumbPage>Ingest Footage</BreadcrumbPage>
-          </BreadcrumbItem>
-        </BreadcrumbList>
-      </Breadcrumb>
-
       <header>
         <h1 className="text-2xl font-bold">Add video to {selectedCamera.name}</h1>
         <p className="text-muted-foreground text-sm mt-1">

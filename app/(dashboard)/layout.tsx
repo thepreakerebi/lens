@@ -32,7 +32,49 @@ import {
   SidebarProvider,
   SidebarTrigger,
 } from "@/components/ui/sidebar";
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from "@/components/ui/breadcrumb";
+import { Separator } from "@/components/ui/separator";
 import { IngestVideoModal } from "@/components/ingest/IngestVideoModal";
+import { BreadcrumbProvider, useBreadcrumbs } from "@/components/providers/BreadcrumbProvider";
+
+function HeaderBreadcrumbs() {
+  const { items } = useBreadcrumbs();
+  if (items.length === 0) return null;
+  return (
+    <>
+      <Separator orientation="vertical" className="mr-2 !h-4" />
+      <Breadcrumb>
+        <BreadcrumbList>
+          {items.flatMap((item, i) => {
+            const isLast = i === items.length - 1;
+            const elements = [
+              <BreadcrumbItem key={`item-${i}`}>
+                {isLast ? (
+                  <BreadcrumbPage>{item.label}</BreadcrumbPage>
+                ) : (
+                  <BreadcrumbLink href={item.href ?? "#"}>
+                    {item.label}
+                  </BreadcrumbLink>
+                )}
+              </BreadcrumbItem>,
+            ];
+            if (!isLast) {
+              elements.push(<BreadcrumbSeparator key={`sep-${i}`} />);
+            }
+            return elements;
+          })}
+        </BreadcrumbList>
+      </Breadcrumb>
+    </>
+  );
+}
 
 const navItems = [
   { href: "/dashboard", label: "Dashboard", icon: DashboardSpeed01Icon },
@@ -147,10 +189,13 @@ export default function DashboardLayout({
       </Sidebar>
 
       <SidebarInset className="min-h-0 overflow-hidden">
-        <header className="flex h-14 shrink-0 items-center gap-2 border-b px-4">
-          <SidebarTrigger className="-ml-1" />
-        </header>
-        <main className="min-h-0 flex-1 overflow-y-auto">{children}</main>
+        <BreadcrumbProvider>
+          <header className="flex h-14 shrink-0 items-center gap-2 border-b px-4">
+            <SidebarTrigger className="-ml-1" />
+            <HeaderBreadcrumbs />
+          </header>
+          <main className="min-h-0 flex-1 overflow-y-auto">{children}</main>
+        </BreadcrumbProvider>
       </SidebarInset>
     </SidebarProvider>
   );

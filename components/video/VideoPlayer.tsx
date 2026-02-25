@@ -19,10 +19,13 @@ interface VideoPlayerProps {
   className?: string;
 }
 
-type StreamState =
+type StreamData = { videoUrl: string; thumbnailUrl: string | null };
+
+type PlayerState =
   | { type: "idle" }
-  | { type: "loading" }
-  | { type: "ready"; videoUrl: string; thumbnailUrl: string | null }
+  | { type: "fetching" }
+  | { type: "prefetched"; data: StreamData }
+  | { type: "playing"; data: StreamData }
   | { type: "error"; message: string };
 
 export function VideoPlayer({
@@ -34,32 +37,52 @@ export function VideoPlayer({
 }: VideoPlayerProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const hlsRef = useRef<import("hls.js").default | null>(null);
-  const [state, setState] = useState<StreamState>({ type: "idle" });
+  const [state, setState] = useState<PlayerState>({ type: "idle" });
 
   const getStreamUrl = useAction(api.videos.getStreamUrl);
 
-  const loadAndPlay = useCallback(async () => {
-    setState({ type: "loading" });
-    try {
-      const result = await getStreamUrl({ videoId, twelveLabsVideoId, twelveLabsIndexId });
-      if (!result.videoUrl) {
-        setState({ type: "error", message: "No stream available for this video." });
-        return;
-      }
-      setState({
-        type: "ready",
-        videoUrl: result.videoUrl,
-        thumbnailUrl: result.thumbnailUrl,
-      });
-    } catch (e: unknown) {
-      const msg = e instanceof Error ? e.message : "Failed to load video.";
-      setState({ type: "error", message: msg });
-    }
-  }, [getStreamUrl, videoId, twelveLabsVideoId, twelveLabsIndexId]);
+  const hasIds = videoId || (twelveLabsVideoId && twelveLabsIndexId);
 
-  // Attach HLS once we have the URL
+  // Eagerly fetch stream data (including thumbnail) on mount
   useEffect(() => {
-    if (state.type !== "ready") return;
+    if (!hasIds) return;
+    let cancelled = false;
+
+    setState({ type: "fetching" });
+    getStreamUrl({ videoId, twelveLabsVideoId, twelveLabsIndexId })
+      .then((result) => {
+        if (cancelled) return;
+        if (!result.videoUrl) {
+          setState({ type: "error", message: "No stream available for this video." });
+          return;
+        }
+        setState({
+          type: "prefetched",
+          data: {
+            videoUrl: result.videoUrl,
+            thumbnailUrl: result.thumbnailUrl,
+          },
+        });
+      })
+      .catch((e: unknown) => {
+        if (cancelled) return;
+        const msg = e instanceof Error ? e.message : "Failed to load video.";
+        setState({ type: "error", message: msg });
+      });
+
+    return () => { cancelled = true; };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [videoId, twelveLabsVideoId, twelveLabsIndexId]);
+
+  const play = useCallback(() => {
+    if (state.type === "prefetched") {
+      setState({ type: "playing", data: state.data });
+    }
+  }, [state]);
+
+  // Attach HLS once playing
+  useEffect(() => {
+    if (state.type !== "playing") return;
     const video = videoRef.current;
     if (!video) return;
 
@@ -70,7 +93,7 @@ export function VideoPlayer({
 
     // Safari native HLS
     if (video.canPlayType("application/vnd.apple.mpegurl")) {
-      video.src = state.videoUrl;
+      video.src = state.data.videoUrl;
       video.addEventListener("loadedmetadata", seekAndPlay, { once: true });
       return () => {
         video.removeEventListener("loadedmetadata", seekAndPlay);
@@ -88,7 +111,7 @@ export function VideoPlayer({
       }
       const hls = new Hls({ enableWorker: true });
       hlsRef.current = hls;
-      hls.loadSource(state.videoUrl);
+      hls.loadSource(state.data.videoUrl);
       hls.attachMedia(videoRef.current);
       hls.once(Hls.Events.MANIFEST_PARSED, seekAndPlay);
     });
@@ -100,52 +123,68 @@ export function VideoPlayer({
     };
   }, [state, startTime]);
 
-  const hasIds = videoId || (twelveLabsVideoId && twelveLabsIndexId);
+  const thumbnailUrl =
+    (state.type === "prefetched" || state.type === "playing")
+      ? state.data.thumbnailUrl
+      : null;
 
   return (
-    <div className={`relative bg-black rounded-md overflow-hidden aspect-video w-full ${className}`}>
-      {state.type === "idle" && (
-        <button
-          onClick={loadAndPlay}
-          disabled={!hasIds}
-          className="absolute inset-0 flex flex-col items-center justify-center gap-2 w-full h-full text-white hover:bg-white/10 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
-          aria-label="Play video"
-        >
-          <span className="flex items-center justify-center w-12 h-12 rounded-full bg-white/20 hover:bg-white/30 transition-colors">
-            <HugeiconsIcon icon={PlayIcon} size={24} className="translate-x-0.5" />
-          </span>
-          <span className="text-xs text-white/70">Click to load &amp; play</span>
-        </button>
+    <div className={`relative bg-zinc-900 overflow-hidden aspect-video w-full ${className}`}>
+      {/* Thumbnail background */}
+      {state.type !== "playing" && thumbnailUrl && (
+        <img
+          src={thumbnailUrl}
+          alt=""
+          className="absolute inset-0 w-full h-full object-cover"
+        />
       )}
 
-      {state.type === "loading" && (
+      {/* Idle / no IDs */}
+      {state.type === "idle" && (
+        <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 text-white/50">
+          <span className="text-xs">No video available</span>
+        </div>
+      )}
+
+      {/* Fetching stream data */}
+      {state.type === "fetching" && (
         <div className="absolute inset-0 flex items-center justify-center">
           <HugeiconsIcon
             icon={Loading03Icon}
-            size={32}
-            className="text-white animate-spin"
+            size={28}
+            className="text-white/40 animate-spin"
           />
         </div>
       )}
 
+      {/* Prefetched: show thumbnail + play button */}
+      {state.type === "prefetched" && (
+        <button
+          onClick={play}
+          className="absolute inset-0 flex items-center justify-center w-full h-full text-white hover:bg-black/10 transition-colors"
+          aria-label="Play video"
+        >
+          <span className="flex items-center justify-center w-11 h-11 rounded-full bg-black/50 backdrop-blur-sm transition-colors hover:bg-black/60">
+            <HugeiconsIcon icon={PlayIcon} size={22} className="translate-x-0.5" />
+          </span>
+        </button>
+      )}
+
+      {/* Error */}
       {state.type === "error" && (
         <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 p-4">
           <HugeiconsIcon icon={Alert01Icon} size={24} className="text-red-400" />
           <p className="text-xs text-red-300 text-center">{state.message}</p>
-          <button
-            onClick={loadAndPlay}
-            className="text-xs text-white/60 underline hover:text-white/90"
-          >
-            Retry
-          </button>
         </div>
       )}
 
-      {state.type === "ready" && (
+      {/* Playing */}
+      {state.type === "playing" && (
         <video
           ref={videoRef}
           controls
           playsInline
+          poster={thumbnailUrl ?? undefined}
           className="w-full h-full object-contain"
         />
       )}

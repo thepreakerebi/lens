@@ -4,24 +4,18 @@ import { use } from "react";
 import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import type { Doc, Id } from "@/convex/_generated/dataModel";
+import { useEffect } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbList,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
-} from "@/components/ui/breadcrumb";
 import { formatDuration } from "@/lib/utils";
 import Link from "next/link";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { ArrowLeft01Icon, VideoReplayIcon } from "@hugeicons/core-free-icons";
+import { VideoReplayIcon } from "@hugeicons/core-free-icons";
 import { AnalyzeVideoDialog } from "@/components/search/AnalyzeVideoDialog";
 import { VideoPlayer } from "@/components/video/VideoPlayer";
+import { useBreadcrumbs } from "@/components/providers/BreadcrumbProvider";
 
 const STATUS_STYLES: Record<string, string> = {
   pending: "bg-amber-500/15 text-amber-700 dark:text-amber-400 border-amber-500/20",
@@ -90,6 +84,15 @@ export default function CameraDetailPage({
   const videos = useQuery(api.videos.listByCamera, {
     cameraId: id as Id<"cameras">,
   });
+  const { setItems } = useBreadcrumbs();
+
+  useEffect(() => {
+    setItems([
+      { label: "Cameras", href: "/cameras" },
+      { label: camera?.name ?? "…" },
+    ]);
+    return () => setItems([]);
+  }, [camera?.name, setItems]);
 
   if (camera === null) {
     return (
@@ -101,37 +104,14 @@ export default function CameraDetailPage({
 
   return (
     <article className="p-6 flex flex-col gap-6 max-w-6xl">
-      <Breadcrumb>
-        <BreadcrumbList>
-          <BreadcrumbItem>
-            <BreadcrumbLink asChild>
-              <Link href="/cameras">Cameras</Link>
-            </BreadcrumbLink>
-          </BreadcrumbItem>
-          <BreadcrumbSeparator />
-          <BreadcrumbItem>
-            {camera === undefined ? (
-              <Skeleton className="h-4 w-24" />
-            ) : (
-              <BreadcrumbPage>{camera.name}</BreadcrumbPage>
-            )}
-          </BreadcrumbItem>
-        </BreadcrumbList>
-      </Breadcrumb>
-
-      <header className="flex items-center gap-3">
-        <Link href="/cameras">
-          <Button variant="ghost" size="icon" className="h-8 w-8">
-            <HugeiconsIcon icon={ArrowLeft01Icon} size={16} />
-          </Button>
-        </Link>
+      <header>
         {camera === undefined ? (
           <Skeleton className="h-8 w-48" />
         ) : (
-          <section>
+          <>
             <h1 className="text-2xl font-bold">{camera.name}</h1>
             <p className="text-muted-foreground text-sm">{camera.location}</p>
-          </section>
+          </>
         )}
       </header>
 

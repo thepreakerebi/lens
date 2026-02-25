@@ -50,15 +50,34 @@ export const getStreamUrl = action({
       const err = await res.text();
       throw new ConvexError(`Failed to get stream URL: ${err}`);
     }
-    const data = (await res.json()) as {
-      hls?: { video_url?: string; thumbnail_url?: string };
-      metadata?: { duration?: number; filename?: string };
-    };
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const data: any = await res.json();
+
+    // Log for debugging thumbnail availability
+    console.log(
+      "[getStreamUrl] TL response keys:",
+      JSON.stringify({
+        hasHls: !!data.hls,
+        hlsKeys: data.hls ? Object.keys(data.hls) : [],
+        thumbnailUrl: data.hls?.thumbnail_url ?? null,
+        thumbnailUrls: data.hls?.thumbnail_urls ?? null,
+        topLevelKeys: Object.keys(data),
+      })
+    );
+
+    // Try all known thumbnail field locations
+    const thumbnailUrl: string | null =
+      data.hls?.thumbnail_url ??
+      data.hls?.thumbnail_urls?.[0] ??
+      data.thumbnail_url ??
+      data.thumbnail ??
+      null;
+
     return {
-      videoUrl: data.hls?.video_url ?? null,
-      thumbnailUrl: data.hls?.thumbnail_url ?? null,
-      duration: data.metadata?.duration ?? null,
-      filename: data.metadata?.filename ?? null,
+      videoUrl: (data.hls?.video_url as string) ?? null,
+      thumbnailUrl,
+      duration: (data.metadata?.duration as number) ?? null,
+      filename: (data.metadata?.filename as string) ?? null,
     };
   },
 });
