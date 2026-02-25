@@ -6,6 +6,16 @@ import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import type { Doc } from "@/convex/_generated/dataModel";
 import { AlertRuleForm } from "@/components/alerts/AlertRuleForm";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
@@ -20,6 +30,7 @@ import { authClient } from "@/lib/auth-client";
 export default function SettingsPage() {
   const router = useRouter();
   const [showRuleForm, setShowRuleForm] = useState(false);
+  const [ruleToDelete, setRuleToDelete] = useState<Doc<"alertRules"> | null>(null);
   const cameras = useQuery(api.cameras.list);
   const alertRules = useQuery(api.alerts.listAlertRules);
   const deleteRule = useMutation(api.alerts.deleteAlertRule);
@@ -187,7 +198,8 @@ export default function SettingsPage() {
                         variant="ghost"
                         size="icon"
                         className="h-8 w-8 text-destructive hover:text-destructive"
-                        onClick={() => deleteRule({ id: rule._id })}
+                        onClick={() => setRuleToDelete(rule)}
+                        aria-label={`Delete rule ${rule.name}`}
                       >
                         <HugeiconsIcon icon={Delete01Icon} size={16} />
                       </Button>
@@ -197,6 +209,39 @@ export default function SettingsPage() {
               </ul>
             )}
           </Card>
+
+          <AlertDialog
+            open={ruleToDelete !== null}
+            onOpenChange={(open) => !open && setRuleToDelete(null)}
+          >
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Delete alert rule</AlertDialogTitle>
+                <AlertDialogDescription>
+                  {ruleToDelete ? (
+                    <>
+                      Are you sure you want to delete &quot;{ruleToDelete.name}&quot;?
+                      This action cannot be undone.
+                    </>
+                  ) : null}
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction
+                  className="bg-destructive text-white hover:bg-destructive/90 hover:text-white"
+                  onClick={() => {
+                    if (ruleToDelete) {
+                      deleteRule({ id: ruleToDelete._id });
+                      setRuleToDelete(null);
+                    }
+                  }}
+                >
+                  Delete
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
         </TabsContent>
       </Tabs>
     </article>
