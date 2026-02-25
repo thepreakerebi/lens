@@ -7,7 +7,7 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Clock01Icon } from "@hugeicons/core-free-icons";
-import { AnalyzeVideoDialog } from "./AnalyzeVideoDialog";
+import { AnalyzeVideoSheet } from "./AnalyzeVideoSheet";
 import { VideoPlayer } from "@/components/video/VideoPlayer";
 
 interface SearchResultCardProps {
@@ -78,7 +78,7 @@ export function SearchResultCard({ result }: SearchResultCardProps) {
 
         {result.videoId && video ? (
           <footer className="pt-1 border-t">
-            <AnalyzeVideoDialog
+            <AnalyzeVideoSheet
               videoId={result.videoId as Id<"videos">}
               videoTitle={video.title}
               start={result.start}

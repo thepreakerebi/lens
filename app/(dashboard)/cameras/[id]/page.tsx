@@ -13,7 +13,7 @@ import { formatDuration } from "@/lib/utils";
 import Link from "next/link";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { VideoReplayIcon } from "@hugeicons/core-free-icons";
-import { AnalyzeVideoDialog } from "@/components/search/AnalyzeVideoDialog";
+import { AnalyzeVideoSheet } from "@/components/search/AnalyzeVideoSheet";
 import { VideoPlayer } from "@/components/video/VideoPlayer";
 import { useBreadcrumbs } from "@/components/providers/BreadcrumbProvider";
 
@@ -66,7 +66,7 @@ function VideoCard({ video }: { video: Doc<"videos"> }) {
 
         {isPlayable && (
           <footer className="pt-1 border-t">
-            <AnalyzeVideoDialog videoId={video._id} videoTitle={video.title} />
+            <AnalyzeVideoSheet videoId={video._id} videoTitle={video.title} />
           </footer>
         )}
       </section>

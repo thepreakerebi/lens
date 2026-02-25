@@ -155,7 +155,7 @@ export const naturalLanguageSearch = action({
       if (i < 3) {
         try {
           const sumRes = await fetch(
-            "https://api.twelvelabs.io/v1.3/generate",
+            "https://api.twelvelabs.io/v1.3/analyze",
             {
               method: "POST",
               headers: {
@@ -164,14 +164,15 @@ export const naturalLanguageSearch = action({
               },
               body: JSON.stringify({
                 video_id: clip.video_id,
-                type: "summary",
                 prompt: `Describe what's happening between ${clip.start}s and ${clip.end}s in this video clip.`,
+                temperature: 0.2,
+                stream: false,
               }),
             }
           );
           if (sumRes.ok) {
-            const sumData = await sumRes.json();
-            pegasusSummary = sumData.data ?? sumData.summary;
+            const sumData = (await sumRes.json()) as { data?: string };
+            pegasusSummary = sumData.data;
           }
         } catch {
           // Summary is optional, don't fail the search
@@ -224,7 +225,7 @@ export const analyzeVideo = action({
         ? `Analyze the video segment from ${start} to ${end} seconds. ${prompt}`
         : prompt;
 
-    const res = await fetch("https://api.twelvelabs.io/v1.3/generate", {
+    const res = await fetch("https://api.twelvelabs.io/v1.3/analyze", {
       method: "POST",
       headers: {
         "x-api-key": apiKey,
@@ -232,8 +233,9 @@ export const analyzeVideo = action({
       },
       body: JSON.stringify({
         video_id: video.twelveLabsVideoId,
-        type: "summary",
         prompt: effectivePrompt,
+        temperature: 0.2,
+        stream: false,
       }),
     });
 
@@ -242,8 +244,8 @@ export const analyzeVideo = action({
       throw new ConvexError(`Analysis failed: ${err}`);
     }
 
-    const data = (await res.json()) as { data?: string; summary?: string };
-    return data.data ?? data.summary ?? "";
+    const data = (await res.json()) as { data?: string };
+    return data.data ?? "";
   },
 });
 
