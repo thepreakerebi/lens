@@ -12,7 +12,6 @@ import { api } from "@/convex/_generated/api";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
   Camera01Icon,
-  Search01Icon,
   Alert01Icon,
   Settings01Icon,
   DashboardSpeed01Icon,
@@ -79,7 +78,6 @@ function HeaderBreadcrumbs() {
 const navItems = [
   { href: "/dashboard", label: "Dashboard", icon: DashboardSpeed01Icon },
   { href: "/cameras", label: "Cameras", icon: Camera01Icon },
-  { href: "/search", label: "Search", icon: Search01Icon },
   { href: "/alerts", label: "Alerts", icon: Alert01Icon },
   { href: "/settings", label: "Settings", icon: Settings01Icon },
 ];

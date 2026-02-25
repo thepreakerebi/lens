@@ -141,7 +141,7 @@ export default function CameraDetailPage({
           )}
         </h2>
         <Link href={`/ingest?camera=${id}`}>
-          <Button size="sm" variant="outline">
+          <Button size="sm" variant="default">
             <HugeiconsIcon icon={VideoReplayIcon} size={16} className="mr-2" />
             Ingest Video
           </Button>
