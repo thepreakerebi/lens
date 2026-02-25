@@ -92,11 +92,16 @@ export const createAlertRule = mutation({
   handler: async (ctx, args) => {
     const user = await authComponent.getAuthUser(ctx);
     if (!user) throw new ConvexError("Not authenticated");
-    return ctx.db.insert("alertRules", {
+    const ruleId = await ctx.db.insert("alertRules", {
       ...args,
       userId: user._id,
       isActive: true,
     });
+    // Run alert check immediately so existing indexed videos are evaluated
+    await ctx.scheduler.runAfter(0, internal.alerts.runAlertCheckForNewVideos, {
+      userId: user._id,
+    });
+    return ruleId;
   },
 });
 
@@ -218,9 +223,13 @@ export const runAlertCheckForNewVideos = internalAction({
   args: {
     /** When set, only process this user's videos. When omitted (cron), process all users. */
     userId: v.optional(v.string()),
+    /** Optional: only check videos that became ready after this timestamp (ms). Omit to check all ready videos. */
+    since: v.optional(v.number()),
   },
-  handler: async (ctx, { userId: scopeUserId }) => {
-    const since = Date.now() - 20 * 60 * 1000;
+  handler: async (ctx, { userId: scopeUserId, since: sinceArg }) => {
+    // Default: check ALL ready videos (since=0) so existing indexed footage is included when rules are created.
+    // Previously used 20-min window which excluded videos indexed before that—causing alerts to never fire.
+    const since = sinceArg ?? 0;
     const recentVideos = await ctx.runQuery(
       internal.alerts.getReadyVideosSince,
       { since }
@@ -258,20 +267,19 @@ export const runAlertCheckForNewVideos = internalAction({
           if (!camera?.twelveLabsIndexId) continue;
 
           const apiKey = process.env.TWELVE_LABS_API_KEY!;
+          const form = new FormData();
+          form.append("index_id", camera.twelveLabsIndexId);
+          form.append("query_text", rule.description);
+          form.append("search_options", "visual");
+          form.append("search_options", "audio");
+          form.append("threshold", "low");
+          form.append("filter", JSON.stringify({ id: [video.twelveLabsVideoId] }));
+          form.append("page_limit", "5");
+
           const res = await fetch("https://api.twelvelabs.io/v1.3/search", {
             method: "POST",
-            headers: {
-              "x-api-key": apiKey,
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              index_id: camera.twelveLabsIndexId,
-              query_text: rule.description,
-              search_options: ["visual", "conversation"],
-              threshold: "high",
-              filter: { id: [video.twelveLabsVideoId] },
-              page_limit: 5,
-            }),
+            headers: { "x-api-key": apiKey },
+            body: form,
           });
 
           if (!res.ok) continue;
