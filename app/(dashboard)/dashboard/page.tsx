@@ -224,8 +224,8 @@ export default function DashboardPage() {
             )}
           </section>
 
-          {/* Recent searches: trigger + sheet on < sm, aside on sm+ */}
-          <aside className="hidden sm:block w-56 shrink-0">
+          {/* Recent searches: trigger + sheet on < sm, aside on sm+ (sticky to stay visible when scrolling results) */}
+          <aside className="hidden sm:block w-56 shrink-0 sticky top-32 self-start max-h-[calc(100vh-8rem)] overflow-y-auto bg-background z-1">
             <h3 className="text-sm font-semibold mb-3">Recent Searches</h3>
             {searchHistory === undefined ? (
               <ul className="flex flex-col gap-2 list-none p-0 m-0">
