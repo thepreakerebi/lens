@@ -84,6 +84,19 @@ export const getStreamUrl = action({
 
 // ── Queries ───────────────────────────────────────────────────────────────────
 
+export const hasAny = query({
+  args: {},
+  handler: async (ctx) => {
+    const user = await authComponent.getAuthUser(ctx);
+    if (!user) return false;
+    const first = await ctx.db
+      .query("videos")
+      .withIndex("by_user", (q) => q.eq("userId", user._id))
+      .first();
+    return first !== null;
+  },
+});
+
 export const listByCamera = query({
   args: { cameraId: v.id("cameras") },
   handler: async (ctx, { cameraId }) => {

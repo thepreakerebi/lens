@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 import { useQuery, useAction } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import type { Doc, Id } from "@/convex/_generated/dataModel";
@@ -10,13 +10,15 @@ import { SearchBar } from "@/components/search/SearchBar";
 import { SearchResultCard } from "@/components/search/SearchResultCard";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import {
   Sheet,
   SheetContent,
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
+import Link from "next/link";
+import { cn } from "@/lib/utils";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
   Camera01Icon,
@@ -33,9 +35,11 @@ export default function DashboardPage() {
   const [recentSearchesOpen, setRecentSearchesOpen] = useState(false);
 
   const cameras = useQuery(api.cameras.list);
+  const hasAnyVideos = useQuery(api.videos.hasAny);
   const recentIncidents = useQuery(api.alerts.listIncidents, { unreadOnly: false });
   const searchHistory = useQuery(api.search.getHistory);
   const syncVideoIds = useAction(api.videos.syncVideoIdsForSearch);
+  const userClearedRef = useRef(false);
   const results = useQuery(
     api.search.getResults,
     activeQueryId ? { queryId: activeQueryId } : "skip"
@@ -57,6 +61,23 @@ export default function DashboardPage() {
   const handleSearch = (queryId: Id<"searchQueries">) => {
     setActiveQueryId(queryId);
     setSearching(false);
+  };
+
+  // Default to latest search when search history loads (unless user explicitly cleared)
+  useEffect(() => {
+    if (
+      searchHistory &&
+      searchHistory.length > 0 &&
+      !userClearedRef.current &&
+      activeQueryId === null
+    ) {
+      setActiveQueryId(searchHistory[0]._id);
+    }
+  }, [searchHistory, activeQueryId]);
+
+  const handleClearResults = () => {
+    userClearedRef.current = true;
+    setActiveQueryId(null);
   };
 
   const handleSync = async () => {
@@ -120,7 +141,7 @@ export default function DashboardPage() {
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => setActiveQueryId(null)}
+                onClick={handleClearResults}
                 className="w-full sm:w-auto shrink-0"
                 aria-label="Clear search results and return to default view"
               >
@@ -177,6 +198,24 @@ export default function DashboardPage() {
                 >
                   {syncing ? "Syncing…" : "Sync indexed videos"}
                 </Button>
+              </section>
+            ) : hasAnyVideos === false ? (
+              <section
+                className="flex flex-col gap-3 py-8 text-center"
+                aria-label="No footage ingested"
+              >
+                <p className="text-sm text-muted-foreground">
+                  No footage ingested yet. Add video to your cameras to enable AI-powered search.
+                </p>
+                <Link
+                  href="/cameras"
+                  className={cn(
+                    buttonVariants({ variant: "default", size: "sm" }),
+                    "w-fit mx-auto"
+                  )}
+                >
+                  Go to Cameras
+                </Link>
               </section>
             ) : (
               <p className="text-sm text-muted-foreground">
