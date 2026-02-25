@@ -48,11 +48,11 @@ export function SearchBar({
 
   return (
     <fieldset className="flex flex-col gap-1.5 border-none p-0 m-0">
-      <Label htmlFor="search-query">Search</Label>
+      {/* <Label htmlFor="search-query">Search</Label>
       <p className="text-xs text-muted-foreground">
         Describe what you&apos;re looking for (e.g. person climbing fence, car
         in parking lot).
-      </p>
+      </p> */}
       <form onSubmit={handleSearch} className="flex gap-2 flex-1 mt-1">
         {cameras && cameras.length > 0 ? (
           <select

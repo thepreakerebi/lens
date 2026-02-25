@@ -97,17 +97,19 @@ export default function DashboardPage() {
       </section>
 
       <section aria-labelledby="search-footage-heading">
-        <h2 id="search-footage-heading" className="text-base font-semibold mb-3">
-          Search Footage
-        </h2>
-        <p className="text-muted-foreground text-sm mb-3">
-          Describe what you&apos;re looking for in plain English.
-        </p>
-        <SearchBar
-          cameras={cameras ?? []}
-          onSearchStart={() => setSearching(true)}
-          onSearchComplete={handleSearch}
-        />
+        <div className="sticky top-0 z-10 -mx-6 px-6 py-4 bg-background border-b border-border">
+          <h2 id="search-footage-heading" className="text-base font-semibold mb-3">
+            Search Footage
+          </h2>
+          <p className="text-muted-foreground text-sm mb-3">
+            Describe what you&apos;re looking for in plain English.
+          </p>
+          <SearchBar
+            cameras={cameras ?? []}
+            onSearchStart={() => setSearching(true)}
+            onSearchComplete={handleSearch}
+          />
+        </div>
         <section className="flex gap-6 mt-4">
           <section className="flex-1 flex flex-col gap-3" aria-label="Search results">
             {searching ? (
