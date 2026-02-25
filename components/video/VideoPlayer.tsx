@@ -4,6 +4,7 @@ import { useEffect, useRef, useState, useCallback } from "react";
 import { useAction } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
+import Image from "next/image";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { PlayIcon, Loading03Icon, Alert01Icon } from "@hugeicons/core-free-icons";
 
@@ -53,7 +54,7 @@ export function VideoPlayer({
       .then((result) => {
         if (cancelled) return;
         if (!result.videoUrl) {
-          setState({ type: "error", message: "No stream available for this video." });
+          setState({ type: "error", message: "No stream available for this video yet." });
           return;
         }
         setState({
@@ -132,10 +133,13 @@ export function VideoPlayer({
     <figure className={`relative bg-zinc-900 overflow-hidden aspect-video w-full m-0 ${className}`}>
       {/* Thumbnail background */}
       {state.type !== "playing" && thumbnailUrl && (
-        <img
+        <Image
           src={thumbnailUrl}
           alt=""
-          className="absolute inset-0 w-full h-full object-cover"
+          fill
+          className="object-cover"
+          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+          unoptimized
         />
       )}
 
