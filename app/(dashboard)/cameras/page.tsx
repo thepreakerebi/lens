@@ -12,14 +12,16 @@ export default function CamerasPage() {
 
   return (
     <article className="p-6 flex flex-col gap-6 max-w-5xl">
-      <header className="flex items-center justify-between">
-        <section>
-          <h1 className="text-2xl font-bold">Cameras</h1>
-          <p className="text-muted-foreground text-sm mt-1">
-            Each camera gets its own AI index. Add footage to start searching.
-          </p>
+      <header className="sticky top-0 z-10 -mx-6 px-6 py-4 bg-background border-b border-border">
+        <section className="flex items-center justify-between">
+          <section>
+            <h1 className="text-2xl font-bold">Cameras</h1>
+            <p className="text-muted-foreground text-sm mt-1">
+              Each camera gets its own AI index. Add footage to start searching.
+            </p>
+          </section>
+          <AddCameraDialog />
         </section>
-        <AddCameraDialog />
       </header>
 
       {cameras === undefined ? (

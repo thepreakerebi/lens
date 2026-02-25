@@ -131,21 +131,23 @@ export default function CameraDetailPage({
         </section>
       )}
 
-      <header className="flex items-center justify-between">
-        <h2 className="text-base font-semibold">
-          Footage
-          {videos !== undefined && (
-            <small className="ml-2 text-muted-foreground font-normal text-sm">
-              ({videos.length})
-            </small>
-          )}
-        </h2>
-        <Link href={`/ingest?camera=${id}`}>
-          <Button size="sm" variant="default">
-            <HugeiconsIcon icon={VideoReplayIcon} size={16} className="mr-2" />
-            Ingest Video
-          </Button>
-        </Link>
+      <header className="sticky top-0 z-10 -mx-6 px-6 py-4 bg-background border-b border-border">
+        <section className="flex items-center justify-between">
+          <h2 className="text-base font-semibold">
+            Footage
+            {videos !== undefined && (
+              <small className="ml-2 text-muted-foreground font-normal text-sm">
+                ({videos.length})
+              </small>
+            )}
+          </h2>
+          <Link href={`/ingest?camera=${id}`}>
+            <Button size="sm" variant="default">
+              <HugeiconsIcon icon={VideoReplayIcon} size={16} className="mr-2" />
+              Ingest Video
+            </Button>
+          </Link>
+        </section>
       </header>
 
       {videos === undefined ? (
