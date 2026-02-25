@@ -134,9 +134,10 @@ export default function DashboardLayout({
   const { isAuthenticated, isLoading } = useConvexAuth();
   const syncProfile = useMutation(api.auth.syncProfile);
   const syncedRef = useRef(false);
-  const unreadIncidents = useQuery(api.alerts.listIncidents, {
-    unreadOnly: true,
-  });
+  const unreadIncidents = useQuery(
+    api.alerts.listIncidents,
+    isAuthenticated ? { unreadOnly: true } : "skip"
+  );
 
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
@@ -160,18 +161,18 @@ export default function DashboardLayout({
     });
   }, [isAuthenticated, syncProfile]);
 
-  if (isLoading) {
+  if (isLoading || !isAuthenticated) {
     return (
       <section
         className="min-h-screen flex items-center justify-center"
-        aria-label="Loading"
+        aria-label={!isAuthenticated ? "Redirecting to sign in" : "Loading"}
       >
-        <p className="text-muted-foreground text-sm">Loading…</p>
+        <p className="text-muted-foreground text-sm">
+          {!isAuthenticated ? "Redirecting to sign in…" : "Loading…"}
+        </p>
       </section>
     );
   }
-
-  if (!isAuthenticated) return null;
 
   return (
     <SidebarProvider className="h-svh overflow-hidden">

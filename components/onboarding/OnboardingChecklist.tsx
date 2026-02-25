@@ -79,7 +79,18 @@ export function OnboardingChecklist() {
       className="fixed bottom-6 right-6 z-50 w-72"
       aria-label="Onboarding checklist"
     >
-      <Card className="overflow-hidden shadow-lg">
+      <Card className="relative overflow-hidden shadow-lg border-0">
+        <span
+          className="absolute -inset-1 -z-10 rounded-[inherit] opacity-90"
+          style={{
+            background: `
+              linear-gradient(0deg, #6366f1, #a855f7, #ec4899, #22d3ee, #6366f1)
+            `,
+            backgroundSize: "400% 400%",
+            animation: "onboarding-gradient 6s ease-in-out infinite",
+          }}
+        />
+        <span className="absolute inset-1 -z-10 rounded-[inherit] bg-card" />
         <header className="flex items-center justify-between gap-2 px-4 py-3 border-b">
           <h3 className="text-sm font-semibold">
             Get started
