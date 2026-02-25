@@ -52,7 +52,6 @@ export default defineSchema({
   alertRules: defineTable({
     userId: v.string(),
     cameraIds: v.optional(v.array(v.id("cameras"))), // undefined/empty = all cameras; non-empty = specific cameras
-    cameraId: v.optional(v.id("cameras")), // deprecated: use cameraIds; kept for migration
     name: v.string(),
     description: v.string(), // NL rule, e.g. "person climbing fence"
     emailNotification: v.boolean(),

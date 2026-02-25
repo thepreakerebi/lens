@@ -1,4 +1,3 @@
-import type { Id } from "./_generated/dataModel";
 import { ConvexError, v } from "convex/values";
 import {
   action,
@@ -137,22 +136,6 @@ export const deleteAlertRule = mutation({
   },
 });
 
-/** Migrate legacy rules with cameraId to cameraIds. Run once from Convex dashboard. */
-export const migrateAlertRulesToCameraIds = internalMutation({
-  args: {},
-  handler: async (ctx) => {
-    const rules = await ctx.db.query("alertRules").collect();
-    for (const rule of rules) {
-      const r = rule as { cameraId?: string; cameraIds?: string[] };
-      if (r.cameraId && !r.cameraIds?.length) {
-        await ctx.db.patch(rule._id, {
-          cameraIds: [r.cameraId as Id<"cameras">],
-        });
-      }
-    }
-  },
-});
-
 // ── Internal helpers ──────────────────────────────────────────────────────────
 
 export const getActiveRulesForUser = internalQuery({
@@ -259,14 +242,8 @@ export const runAlertCheckForNewVideos = internalAction({
       if (userVideos.length === 0) continue;
 
       for (const rule of rules) {
-        // Support legacy cameraId (single) and new cameraIds (array)
-        const ruleWithLegacy = rule as { cameraIds?: string[]; cameraId?: string };
         const cameraIds =
-          ruleWithLegacy.cameraIds && ruleWithLegacy.cameraIds.length > 0
-            ? ruleWithLegacy.cameraIds
-            : ruleWithLegacy.cameraId
-              ? [ruleWithLegacy.cameraId]
-              : [];
+          rule.cameraIds && rule.cameraIds.length > 0 ? rule.cameraIds : [];
         const targetVideos =
           cameraIds.length > 0
             ? userVideos.filter((v) => cameraIds.includes(v.cameraId))
