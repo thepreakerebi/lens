@@ -23,6 +23,7 @@ import {
   Alert01Icon,
   Search01Icon,
   TransactionHistoryIcon,
+  Cancel01Icon,
 } from "@hugeicons/core-free-icons";
 
 export default function DashboardPage() {
@@ -105,39 +106,61 @@ export default function DashboardPage() {
       </section>
 
       <section aria-labelledby="search-footage-heading">
-        <div className="sticky top-0 z-10 -mx-6 px-6 py-4 bg-background border-b border-border">
-          <h2 id="search-footage-heading" className="text-base font-semibold mb-3">
-            Search Footage
-          </h2>
-          <p className="text-muted-foreground text-sm mb-3">
-            Describe what you&apos;re looking for in plain English.
-          </p>
+        <header className="sticky top-0 z-10 -mx-6 px-6 py-4 bg-background border-b border-border">
+          <section className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-3">
+            <section>
+              <h2 id="search-footage-heading" className="text-base font-semibold">
+                Search Footage
+              </h2>
+              <p className="text-muted-foreground text-sm mt-1">
+                Describe what you&apos;re looking for in plain English.
+              </p>
+            </section>
+            {activeQueryId ? (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setActiveQueryId(null)}
+                className="w-full sm:w-auto shrink-0"
+                aria-label="Clear search results and return to default view"
+              >
+                <HugeiconsIcon icon={Cancel01Icon} size={16} className="mr-2" />
+                Clear results
+              </Button>
+            ) : null}
+          </section>
           <SearchBar
             cameras={cameras ?? []}
             onSearchStart={() => setSearching(true)}
             onSearchComplete={handleSearch}
           />
-        </div>
+        </header>
         <section className="flex flex-col sm:flex-row gap-6 mt-4">
           <section className="flex-1 flex flex-col gap-3 min-w-0" aria-label="Search results">
             {searching ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <ul className="grid grid-cols-1 sm:grid-cols-2 gap-3 list-none p-0 m-0">
                 {Array.from({ length: 4 }).map((_, i) => (
-                  <Skeleton key={i} className="aspect-video rounded-lg" />
+                  <li key={i}>
+                    <Skeleton className="aspect-video rounded-lg" />
+                  </li>
                 ))}
-              </div>
+              </ul>
             ) : results === undefined && activeQueryId !== null ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <ul className="grid grid-cols-1 sm:grid-cols-2 gap-3 list-none p-0 m-0">
                 {Array.from({ length: 4 }).map((_, i) => (
-                  <Skeleton key={i} className="aspect-video rounded-lg" />
+                  <li key={i}>
+                    <Skeleton className="aspect-video rounded-lg" />
+                  </li>
                 ))}
-              </div>
+              </ul>
             ) : results && results.length > 0 ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <ul className="grid grid-cols-1 sm:grid-cols-2 gap-3 list-none p-0 m-0">
                 {results.map((result: Doc<"searchResults">) => (
-                  <SearchResultCard key={result._id} result={result} />
+                  <li key={result._id}>
+                    <SearchResultCard result={result} />
+                  </li>
                 ))}
-              </div>
+              </ul>
             ) : activeQueryId ? (
               <section className="flex flex-col gap-3">
                 <p className="text-sm text-muted-foreground">

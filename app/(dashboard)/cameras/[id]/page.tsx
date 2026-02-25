@@ -41,13 +41,13 @@ function VideoCard({ video }: { video: Doc<"videos"> }) {
       <section className="p-3.5 flex flex-col gap-3">
         <h3 className="text-sm font-semibold leading-snug truncate">{video.title}</h3>
 
-        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+        <p className="flex items-center gap-2 text-xs text-muted-foreground m-0">
           {video.duration !== undefined && (
-            <span>{formatDuration(video.duration)}</span>
+            <time dateTime={`PT${Math.round(video.duration)}S`}>{formatDuration(video.duration)}</time>
           )}
 
           {video.duration !== undefined && (
-            <span className="text-border">·</span>
+            <small className="text-border" aria-hidden>·</small>
           )}
 
           <Badge
@@ -56,7 +56,7 @@ function VideoCard({ video }: { video: Doc<"videos"> }) {
           >
             {video.indexingStatus}
           </Badge>
-        </div>
+        </p>
 
         {!isPlayable && STATUS_MESSAGES[video.indexingStatus] && (
           <p className="text-xs text-muted-foreground italic">
@@ -65,9 +65,9 @@ function VideoCard({ video }: { video: Doc<"videos"> }) {
         )}
 
         {isPlayable && (
-          <div className="pt-1 border-t">
+          <footer className="pt-1 border-t">
             <AnalyzeVideoDialog videoId={video._id} videoTitle={video.title} />
-          </div>
+          </footer>
         )}
       </section>
     </Card>
@@ -135,9 +135,9 @@ export default function CameraDetailPage({
         <h2 className="text-base font-semibold">
           Footage
           {videos !== undefined && (
-            <span className="ml-2 text-muted-foreground font-normal text-sm">
+            <small className="ml-2 text-muted-foreground font-normal text-sm">
               ({videos.length})
-            </span>
+            </small>
           )}
         </h2>
         <Link href={`/ingest?camera=${id}`}>
@@ -149,21 +149,25 @@ export default function CameraDetailPage({
       </header>
 
       {videos === undefined ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <ul className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 list-none p-0 m-0">
           {Array.from({ length: 3 }).map((_, i) => (
-            <Skeleton key={i} className="aspect-video rounded-lg" />
+            <li key={i}>
+              <Skeleton className="aspect-video rounded-lg" />
+            </li>
           ))}
-        </div>
+        </ul>
       ) : videos.length === 0 ? (
         <p className="text-sm text-muted-foreground">
           {`No footage ingested yet. Click "Ingest Video" to add footage.`}
         </p>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <ul className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 list-none p-0 m-0">
           {videos.map((video: Doc<"videos">) => (
-            <VideoCard key={video._id} video={video} />
+            <li key={video._id}>
+              <VideoCard video={video} />
+            </li>
           ))}
-        </div>
+        </ul>
       )}
     </article>
   );

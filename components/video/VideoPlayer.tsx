@@ -129,7 +129,7 @@ export function VideoPlayer({
       : null;
 
   return (
-    <div className={`relative bg-zinc-900 overflow-hidden aspect-video w-full ${className}`}>
+    <figure className={`relative bg-zinc-900 overflow-hidden aspect-video w-full m-0 ${className}`}>
       {/* Thumbnail background */}
       {state.type !== "playing" && thumbnailUrl && (
         <img
@@ -141,20 +141,20 @@ export function VideoPlayer({
 
       {/* Idle / no IDs */}
       {state.type === "idle" && (
-        <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 text-white/50">
-          <span className="text-xs">No video available</span>
-        </div>
+        <figcaption className="absolute inset-0 flex flex-col items-center justify-center gap-2 text-white/50">
+          <small className="text-xs">No video available</small>
+        </figcaption>
       )}
 
       {/* Fetching stream data */}
       {state.type === "fetching" && (
-        <div className="absolute inset-0 flex items-center justify-center">
+        <section className="absolute inset-0 flex items-center justify-center" aria-label="Loading video">
           <HugeiconsIcon
             icon={Loading03Icon}
             size={28}
             className="text-white/40 animate-spin"
           />
-        </div>
+        </section>
       )}
 
       {/* Prefetched: show thumbnail + play button */}
@@ -164,18 +164,21 @@ export function VideoPlayer({
           className="absolute inset-0 flex items-center justify-center w-full h-full text-white hover:bg-black/10 transition-colors"
           aria-label="Play video"
         >
-          <span className="flex items-center justify-center w-11 h-11 rounded-full bg-black/50 backdrop-blur-sm transition-colors hover:bg-black/60">
+          <figure
+            aria-hidden
+            className="flex items-center justify-center w-11 h-11 rounded-full bg-black/50 backdrop-blur-sm transition-colors hover:bg-black/60 m-0"
+          >
             <HugeiconsIcon icon={PlayIcon} size={22} className="translate-x-0.5" />
-          </span>
+          </figure>
         </button>
       )}
 
       {/* Error */}
       {state.type === "error" && (
-        <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 p-4">
+        <section className="absolute inset-0 flex flex-col items-center justify-center gap-2 p-4" aria-label="Video error">
           <HugeiconsIcon icon={Alert01Icon} size={24} className="text-red-400" />
           <p className="text-xs text-red-300 text-center">{state.message}</p>
-        </div>
+        </section>
       )}
 
       {/* Playing */}
@@ -188,6 +191,6 @@ export function VideoPlayer({
           className="w-full h-full object-contain"
         />
       )}
-    </div>
+    </figure>
   );
 }

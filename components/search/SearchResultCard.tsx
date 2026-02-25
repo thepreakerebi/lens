@@ -51,13 +51,15 @@ export function SearchResultCard({ result }: SearchResultCardProps) {
       <section className="p-3.5 flex flex-col gap-3">
         <h3 className="text-sm font-semibold leading-snug truncate">{title}</h3>
 
-        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+        <p className="flex items-center gap-2 text-xs text-muted-foreground m-0">
           <HugeiconsIcon icon={Clock01Icon} size={13} className="shrink-0" aria-hidden />
-          <span>{formatTime(result.start)} – {formatTime(result.end)}</span>
+          <time dateTime={`PT${result.start}S`}>{formatTime(result.start)}</time>
+          <small className="text-border" aria-hidden>–</small>
+          <time dateTime={`PT${result.end}S`}>{formatTime(result.end)}</time>
 
           {result.confidence && (
             <>
-              <span className="text-border">·</span>
+              <small className="text-border" aria-hidden>·</small>
               <Badge
                 variant="outline"
                 className={`text-[11px] capitalize px-1.5 py-0 h-5 font-medium ${CONFIDENCE_STYLES[result.confidence] ?? CONFIDENCE_STYLES.low}`}
@@ -66,7 +68,7 @@ export function SearchResultCard({ result }: SearchResultCardProps) {
               </Badge>
             </>
           )}
-        </div>
+        </p>
 
         {result.pegasusSummary && (
           <p className="text-xs text-muted-foreground leading-relaxed line-clamp-2">
@@ -75,14 +77,14 @@ export function SearchResultCard({ result }: SearchResultCardProps) {
         )}
 
         {result.videoId && video ? (
-          <div className="pt-1 border-t">
+          <footer className="pt-1 border-t">
             <AnalyzeVideoDialog
               videoId={result.videoId as Id<"videos">}
               videoTitle={video.title}
               start={result.start}
               end={result.end}
             />
-          </div>
+          </footer>
         ) : null}
       </section>
     </Card>
