@@ -1,3 +1,4 @@
+import type { Id } from "./_generated/dataModel";
 import { ConvexError, v } from "convex/values";
 import {
   action,
@@ -85,7 +86,7 @@ export const createAlertRule = mutation({
   args: {
     name: v.string(),
     description: v.string(),
-    cameraId: v.optional(v.id("cameras")),
+    cameraIds: v.array(v.id("cameras")),
     emailNotification: v.boolean(),
     webhookUrl: v.optional(v.string()),
   },
@@ -105,6 +106,7 @@ export const updateAlertRule = mutation({
     id: v.id("alertRules"),
     name: v.optional(v.string()),
     description: v.optional(v.string()),
+    cameraIds: v.optional(v.array(v.id("cameras"))),
     isActive: v.optional(v.boolean()),
     emailNotification: v.optional(v.boolean()),
     webhookUrl: v.optional(v.string()),
@@ -132,6 +134,22 @@ export const deleteAlertRule = mutation({
     if (!rule || rule.userId !== user._id)
       throw new ConvexError("Alert rule not found");
     await ctx.db.delete(id);
+  },
+});
+
+/** Migrate legacy rules with cameraId to cameraIds. Run once from Convex dashboard. */
+export const migrateAlertRulesToCameraIds = internalMutation({
+  args: {},
+  handler: async (ctx) => {
+    const rules = await ctx.db.query("alertRules").collect();
+    for (const rule of rules) {
+      const r = rule as { cameraId?: string; cameraIds?: string[] };
+      if (r.cameraId && !r.cameraIds?.length) {
+        await ctx.db.patch(rule._id, {
+          cameraIds: [r.cameraId as Id<"cameras">],
+        });
+      }
+    }
   },
 });
 
@@ -241,9 +259,18 @@ export const runAlertCheckForNewVideos = internalAction({
       if (userVideos.length === 0) continue;
 
       for (const rule of rules) {
-        const targetVideos = rule.cameraId
-          ? userVideos.filter((v) => v.cameraId === rule.cameraId)
-          : userVideos;
+        // Support legacy cameraId (single) and new cameraIds (array)
+        const ruleWithLegacy = rule as { cameraIds?: string[]; cameraId?: string };
+        const cameraIds =
+          ruleWithLegacy.cameraIds && ruleWithLegacy.cameraIds.length > 0
+            ? ruleWithLegacy.cameraIds
+            : ruleWithLegacy.cameraId
+              ? [ruleWithLegacy.cameraId]
+              : [];
+        const targetVideos =
+          cameraIds.length > 0
+            ? userVideos.filter((v) => cameraIds.includes(v.cameraId))
+            : userVideos;
 
         for (const video of targetVideos) {
           if (!video.twelveLabsVideoId) continue;
