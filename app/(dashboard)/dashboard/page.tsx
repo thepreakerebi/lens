@@ -12,15 +12,24 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
+import { HugeiconsIcon } from "@hugeicons/react";
+import {
   Camera01Icon,
   Alert01Icon,
   Search01Icon,
+  TransactionHistoryIcon,
 } from "@hugeicons/core-free-icons";
 
 export default function DashboardPage() {
   const [activeQueryId, setActiveQueryId] = useState<Id<"searchQueries"> | null>(null);
   const [searching, setSearching] = useState(false);
   const [syncing, setSyncing] = useState(false);
+  const [recentSearchesOpen, setRecentSearchesOpen] = useState(false);
 
   const cameras = useQuery(api.cameras.list);
   const recentIncidents = useQuery(api.alerts.listIncidents, { unreadOnly: false });
@@ -32,7 +41,6 @@ export default function DashboardPage() {
   );
 
   // Stable timestamp for "today" / "this week" windows; computed once per mount
-  // eslint-disable-next-line react-hooks/purity -- Date.now() used intentionally for dashboard time windows
   const now = useMemo(() => Date.now(), []);
 
   const unreadCount = recentIncidents?.filter((i) => !i.isRead).length ?? 0;
@@ -69,7 +77,7 @@ export default function DashboardPage() {
         </p>
       </header>
 
-      <section className="grid grid-cols-3 gap-4" aria-label="Statistics">
+      <section className="grid grid-cols-1 sm:grid-cols-3 gap-4" aria-label="Statistics">
         {cameras === undefined ? (
           Array.from({ length: 3 }).map((_, i) => (
             <Skeleton key={i} className="h-24 rounded-lg" />
@@ -110,8 +118,8 @@ export default function DashboardPage() {
             onSearchComplete={handleSearch}
           />
         </div>
-        <section className="flex gap-6 mt-4">
-          <section className="flex-1 flex flex-col gap-3" aria-label="Search results">
+        <section className="flex flex-col sm:flex-row gap-6 mt-4">
+          <section className="flex-1 flex flex-col gap-3 min-w-0" aria-label="Search results">
             {searching ? (
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 {Array.from({ length: 4 }).map((_, i) => (
@@ -153,7 +161,9 @@ export default function DashboardPage() {
               </p>
             )}
           </section>
-          <aside className="w-56 shrink-0">
+
+          {/* Recent searches: trigger + sheet on < sm, aside on sm+ */}
+          <aside className="hidden sm:block w-56 shrink-0">
             <h3 className="text-sm font-semibold mb-3">Recent Searches</h3>
             {searchHistory === undefined ? (
               <ul className="flex flex-col gap-2 list-none p-0 m-0">
@@ -186,6 +196,58 @@ export default function DashboardPage() {
               </ul>
             )}
           </aside>
+
+          <Sheet open={recentSearchesOpen} onOpenChange={setRecentSearchesOpen}>
+            <Button
+              variant="outline"
+              size="sm"
+              className="sm:hidden w-full"
+              onClick={() => setRecentSearchesOpen(true)}
+            >
+              <HugeiconsIcon icon={TransactionHistoryIcon} size={16} className="mr-2" />
+              Recent Searches
+            </Button>
+            <SheetContent side="right" className="w-72">
+              <SheetHeader>
+                <SheetTitle>Recent Searches</SheetTitle>
+              </SheetHeader>
+              <nav className="flex flex-col gap-1 p-4 pt-0 overflow-y-auto" aria-label="Recent searches">
+                {searchHistory === undefined ? (
+                  <ul className="flex flex-col gap-2 list-none p-0 m-0">
+                    {Array.from({ length: 3 }).map((_, i) => (
+                      <li key={i}>
+                        <Skeleton className="h-8 rounded" />
+                      </li>
+                    ))}
+                  </ul>
+                ) : searchHistory.length === 0 ? (
+                  <p className="text-xs text-muted-foreground">No searches yet.</p>
+                ) : (
+                  <ul className="flex flex-col gap-1 list-none p-0 m-0">
+                    {searchHistory.map((q: Doc<"searchQueries">) => (
+                      <button
+                        key={q._id}
+                        onClick={() => {
+                          setActiveQueryId(q._id);
+                          setRecentSearchesOpen(false);
+                        }}
+                        className={`text-left px-3 py-2 rounded text-xs transition-colors w-full ${
+                          activeQueryId === q._id
+                            ? "bg-primary text-primary-foreground"
+                            : "text-muted-foreground hover:bg-muted"
+                        }`}
+                      >
+                        <p className="truncate m-0">{q.query}</p>
+                        <Badge variant="secondary" className="mt-0.5 text-xs px-1 py-0">
+                          {q.resultsCount} results
+                        </Badge>
+                      </button>
+                    ))}
+                  </ul>
+                )}
+              </nav>
+            </SheetContent>
+          </Sheet>
         </section>
       </section>
 

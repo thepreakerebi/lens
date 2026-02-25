@@ -53,12 +53,12 @@ export function SearchBar({
         Describe what you&apos;re looking for (e.g. person climbing fence, car
         in parking lot).
       </p> */}
-      <form onSubmit={handleSearch} className="flex gap-2 flex-1 mt-1">
+      <form onSubmit={handleSearch} className="flex flex-col sm:flex-row gap-2 flex-1 mt-1">
         {cameras && cameras.length > 0 ? (
           <select
             value={cameraId}
             onChange={(e) => setCameraId(e.target.value)}
-            className="h-12 rounded-md border border-input bg-transparent px-3 py-2 text-base shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring shrink-0"
+            className="h-12 rounded-md border border-input bg-transparent px-3 py-2 text-base shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring shrink-0 w-full sm:w-auto"
             aria-label="Filter by camera"
           >
             <option value="">All cameras</option>
@@ -74,10 +74,10 @@ export function SearchBar({
           placeholder=""
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          className="flex-1"
+          className="flex-1 min-w-0"
           aria-label="Search query"
         />
-        <Button type="submit" disabled={loading || !query.trim()}>
+        <Button type="submit" disabled={loading || !query.trim()} className="shrink-0">
           <HugeiconsIcon icon={Search01Icon} size={16} className="mr-2" />
           {loading ? "Searching…" : "Search"}
         </Button>
