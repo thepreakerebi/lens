@@ -77,6 +77,7 @@ export const listAlertRules = query({
     return ctx.db
       .query("alertRules")
       .withIndex("by_user", (q) => q.eq("userId", user._id))
+      .order("desc")
       .collect();
   },
 });
@@ -150,6 +151,7 @@ export const getActiveRulesForUser = internalQuery({
       .query("alertRules")
       .withIndex("by_user", (q) => q.eq("userId", userId))
       .filter((q) => q.eq(q.field("isActive"), true))
+      .order("desc")
       .collect();
   },
 });
@@ -161,6 +163,7 @@ export const getReadyVideosSince = internalQuery({
       .query("videos")
       .withIndex("by_status", (q) => q.eq("indexingStatus", "ready"))
       .filter((q) => q.gte(q.field("_creationTime"), since))
+      .order("desc")
       .collect();
   },
 });

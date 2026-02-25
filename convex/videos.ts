@@ -403,6 +403,7 @@ export const listIndexing = internalQuery({
     return ctx.db
       .query("videos")
       .withIndex("by_status", (q) => q.eq("indexingStatus", "indexing"))
+      .order("desc")
       .collect();
   },
 });

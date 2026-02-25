@@ -19,6 +19,7 @@ export const list = query({
     return ctx.db
       .query("cameras")
       .withIndex("by_user", (q) => q.eq("userId", user._id))
+      .order("desc")
       .collect();
   },
 });
