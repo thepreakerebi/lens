@@ -59,8 +59,9 @@ function BreadcrumbLink({
     className
   );
   if (asChild && React.isValidElement(children)) {
-    return React.cloneElement(children as React.ReactElement<{ className?: string }>, {
-      className: cn(linkClassName, (children as React.ReactElement).props.className),
+    const child = children as React.ReactElement<{ className?: string }>;
+    return React.cloneElement(child, {
+      className: cn(linkClassName, child.props.className),
     });
   }
   return (
