@@ -40,6 +40,7 @@ import {
 } from "@/components/ui/breadcrumb";
 import { Separator } from "@/components/ui/separator";
 import { IngestVideoModal } from "@/components/ingest/IngestVideoModal";
+import { OnboardingChecklist } from "@/components/onboarding/OnboardingChecklist";
 import { BreadcrumbProvider, useBreadcrumbs } from "@/components/providers/BreadcrumbProvider";
 
 function HeaderBreadcrumbs() {
@@ -241,6 +242,8 @@ export default function DashboardLayout({
           <main className="min-h-0 flex-1 overflow-y-auto">{children}</main>
         </BreadcrumbProvider>
       </SidebarInset>
+
+      <OnboardingChecklist />
     </SidebarProvider>
   );
 }
