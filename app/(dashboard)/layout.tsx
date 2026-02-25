@@ -121,9 +121,9 @@ export default function DashboardLayout({
   return (
     <SidebarProvider className="h-svh overflow-hidden">
       <Sidebar>
-        <SidebarHeader className="border-b border-sidebar-border">
+        <SidebarHeader className="flex h-14 shrink-0 items-center border-b border-sidebar-border">
           <SidebarGroup>
-            <SidebarGroupContent className="flex items-center gap-2 px-2 py-1">
+            <SidebarGroupContent className="flex items-center gap-2 px-2">
               <h2 className="text-lg font-bold tracking-tight">Lens</h2>
             </SidebarGroupContent>
           </SidebarGroup>
