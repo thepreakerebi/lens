@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Camera01Icon, Clock01Icon, CheckmarkCircle01Icon } from "@hugeicons/core-free-icons";
+import { VideoPlayer } from "@/components/video/VideoPlayer";
 
 interface IncidentCardProps {
   incident: Doc<"incidents">;
@@ -32,58 +33,69 @@ export function IncidentCard({ incident, compact }: IncidentCardProps) {
 
   return (
     <Card
-      className={`p-4 flex flex-col gap-3 transition-opacity ${
+      className={`p-4 flex flex-row gap-4 transition-opacity ${
         incident.isRead ? "opacity-60" : ""
       }`}
     >
-      <header className="flex items-start justify-between gap-3">
-        <section className="flex flex-col gap-1">
-          <p className="flex items-center gap-2 m-0">
-            <Badge
-              className={
-                SEVERITY_STYLES[incident.severity] +
-                " text-xs font-medium border"
-              }
-              variant="outline"
-            >
-              {incident.severity.toUpperCase()}
-            </Badge>
-            <strong className="text-sm font-medium">{incident.title}</strong>
-          </p>
-          {!compact && (
-            <p className="text-xs text-muted-foreground">
-              {incident.description}
+      {!compact && (
+        <figure className="w-40 shrink-0 aspect-video rounded overflow-hidden m-0" aria-hidden>
+          <VideoPlayer
+            videoId={incident.videoId}
+            startTime={incident.clipStart}
+            className="rounded"
+          />
+        </figure>
+      )}
+      <section className="flex-1 min-w-0 flex flex-col gap-3">
+        <header className="flex items-start justify-between gap-3">
+          <section className="flex flex-col gap-1">
+            <p className="flex items-center gap-2 m-0">
+              <Badge
+                className={
+                  SEVERITY_STYLES[incident.severity] +
+                  " text-xs font-medium border"
+                }
+                variant="outline"
+              >
+                {incident.severity.toUpperCase()}
+              </Badge>
+              <strong className="text-sm font-medium">{incident.title}</strong>
             </p>
+            {!compact && (
+              <p className="text-xs text-muted-foreground m-0">
+                {incident.description}
+              </p>
+            )}
+          </section>
+          {!incident.isRead && !compact && (
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-7 w-7 shrink-0"
+              onClick={() => markAsRead({ id: incident._id })}
+              title="Mark as read"
+            >
+              <HugeiconsIcon icon={CheckmarkCircle01Icon} size={16} />
+            </Button>
           )}
-        </section>
-        {!incident.isRead && !compact && (
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-7 w-7 shrink-0"
-            onClick={() => markAsRead({ id: incident._id })}
-            title="Mark as read"
-          >
-            <HugeiconsIcon icon={CheckmarkCircle01Icon} size={16} />
-          </Button>
-        )}
-      </header>
+        </header>
 
-      <p className="flex items-center gap-4 text-xs text-muted-foreground m-0 flex-wrap">
-        {camera ? (
+        <p className="flex items-center gap-4 text-xs text-muted-foreground m-0 flex-wrap">
+          {camera ? (
+            <small className="flex items-center gap-1">
+              <HugeiconsIcon icon={Camera01Icon} size={14} aria-hidden />
+              {camera.name}
+            </small>
+          ) : null}
           <small className="flex items-center gap-1">
-            <HugeiconsIcon icon={Camera01Icon} size={14} aria-hidden />
-            {camera.name}
+            <HugeiconsIcon icon={Clock01Icon} size={14} aria-hidden />
+            {formatTime(incident.clipStart)} – {formatTime(incident.clipEnd)}
           </small>
-        ) : null}
-        <small className="flex items-center gap-1">
-          <HugeiconsIcon icon={Clock01Icon} size={14} aria-hidden />
-          {formatTime(incident.clipStart)} – {formatTime(incident.clipEnd)}
-        </small>
-        <time dateTime={new Date(incident.detectedAt).toISOString()}>
-          {new Date(incident.detectedAt).toLocaleString()}
-        </time>
-      </p>
+          <time dateTime={new Date(incident.detectedAt).toISOString()}>
+            {new Date(incident.detectedAt).toLocaleString()}
+          </time>
+        </p>
+      </section>
     </Card>
   );
 }

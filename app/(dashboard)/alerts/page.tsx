@@ -8,9 +8,12 @@ import { IncidentCard } from "@/components/alerts/IncidentCard";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { Loading03Icon } from "@hugeicons/core-free-icons";
 
 export default function AlertsPage() {
   const [tab, setTab] = useState<"all" | "unread">("unread");
+  const [runCheckLoading, setRunCheckLoading] = useState(false);
 
   const incidents = useQuery(api.alerts.listIncidents, {
     unreadOnly: tab === "unread",
@@ -19,6 +22,15 @@ export default function AlertsPage() {
   const runCheck = useAction(api.alerts.runAlertCheck);
 
   const unreadCount = useQuery(api.alerts.listIncidents, { unreadOnly: true })?.length ?? 0;
+
+  const handleRunCheck = async () => {
+    setRunCheckLoading(true);
+    try {
+      await runCheck();
+    } finally {
+      setRunCheckLoading(false);
+    }
+  };
 
   return (
     <article className="p-6 flex flex-col gap-6 max-w-5xl">
@@ -31,7 +43,7 @@ export default function AlertsPage() {
 
       <section className="flex flex-col gap-3" aria-labelledby="incidents-heading">
         <h2 id="incidents-heading" className="sr-only">Incidents</h2>
-        <header className="flex items-center justify-between">
+        <header className="sticky top-0 z-10 -mx-6 px-6 py-4 bg-background border-b border-border flex items-center justify-between">
           <nav className="flex rounded-md border overflow-hidden w-fit" aria-label="Filter incidents">
             {(["unread", "all"] as const).map((t) => (
               <button
@@ -65,9 +77,17 @@ export default function AlertsPage() {
             <Button
               variant="outline"
               size="sm"
-              onClick={() => runCheck()}
+              onClick={handleRunCheck}
+              disabled={runCheckLoading}
             >
-              Run check now
+              {runCheckLoading ? (
+                <>
+                  <HugeiconsIcon icon={Loading03Icon} size={16} className="mr-2 animate-spin" />
+                  Running…
+                </>
+              ) : (
+                "Run check now"
+              )}
             </Button>
           </section>
         </header>
