@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState, useCallback } from "react";
-import { useAction } from "convex/react";
+import { useAction, useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
 import Image from "next/image";
@@ -41,12 +41,24 @@ export function VideoPlayer({
   const [state, setState] = useState<PlayerState>({ type: "idle" });
 
   const getStreamUrl = useAction(api.videos.getStreamUrl);
+  const video = useQuery(
+    api.videos.get,
+    videoId ? { id: videoId } : "skip"
+  );
 
   const hasIds = videoId || (twelveLabsVideoId && twelveLabsIndexId);
 
-  // Eagerly fetch stream data (including thumbnail) on mount
+  // When using videoId: wait for video to be ready, then fetch. Convex useQuery keeps this reactive.
+  const videoReady =
+    video?.indexingStatus === "ready" && !!video?.twelveLabsVideoId;
+
   useEffect(() => {
     if (!hasIds) return;
+    if (videoId && !videoReady) {
+      setState({ type: "fetching" });
+      return;
+    }
+
     let cancelled = false;
 
     setState({ type: "fetching" });
@@ -73,7 +85,7 @@ export function VideoPlayer({
 
     return () => { cancelled = true; };
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [videoId, twelveLabsVideoId, twelveLabsIndexId]);
+  }, [videoId, twelveLabsVideoId, twelveLabsIndexId, videoReady]);
 
   const play = useCallback(() => {
     if (state.type === "prefetched") {
