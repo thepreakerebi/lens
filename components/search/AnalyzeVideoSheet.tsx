@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, isValidElement } from "react";
 import { useAction } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
@@ -22,7 +22,7 @@ interface AnalyzeVideoSheetProps {
   videoTitle: string;
   start?: number;
   end?: number;
-  trigger?: React.ReactNode;
+  trigger?: React.ReactElement;
 }
 
 type Message = { role: "user" | "assistant"; content: string };
@@ -105,18 +105,19 @@ export function AnalyzeVideoSheet({
       ? `What is happening in this clip? Describe any notable events, people, or objects.`
       : `Summarize this video. What are the key events, people, and actions?`;
 
+  const triggerElement =
+    trigger && isValidElement(trigger) ? (
+      trigger
+    ) : (
+      <Button variant="outline" size="sm">
+        <HugeiconsIcon icon={MagicWand01Icon} size={14} className="mr-2" />
+        Analyze
+      </Button>
+    );
+
   return (
     <Sheet open={open} onOpenChange={handleOpenChange}>
-      <SheetTrigger
-        render={
-          trigger ?? (
-            <Button variant="outline" size="sm">
-              <HugeiconsIcon icon={MagicWand01Icon} size={14} className="mr-2" />
-              Analyze
-            </Button>
-          )
-        }
-      />
+      <SheetTrigger render={triggerElement} />
       <SheetContent
         side="right"
         className="flex w-full flex-col sm:max-w-xl p-0"
