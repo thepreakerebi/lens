@@ -40,8 +40,8 @@ export default function SettingsPage() {
   const user = session?.user;
 
   const handleSignOut = async () => {
-    await authClient.signOut();
     router.replace("/sign-in");
+    await authClient.signOut();
   };
 
   return (

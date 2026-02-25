@@ -165,11 +165,9 @@ export default function DashboardLayout({
     return (
       <section
         className="min-h-screen flex items-center justify-center"
-        aria-label={!isAuthenticated ? "Redirecting to sign in" : "Loading"}
+        aria-label="Loading"
       >
-        <p className="text-muted-foreground text-sm">
-          {!isAuthenticated ? "Redirecting to sign in…" : "Loading…"}
-        </p>
+        <p className="text-muted-foreground text-sm">Loading…</p>
       </section>
     );
   }

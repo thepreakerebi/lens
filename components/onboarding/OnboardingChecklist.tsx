@@ -64,13 +64,19 @@ export function OnboardingChecklist() {
     hasAlertRules: (alertRules?.length ?? 0) > 0,
   };
 
+  const dataLoaded =
+    cameras !== undefined &&
+    hasVideos !== undefined &&
+    searchHistory !== undefined &&
+    alertRules !== undefined;
+
   const allComplete =
     data.cameras > 0 &&
     data.hasVideos &&
     data.hasSearches &&
     data.hasAlertRules;
 
-  if (allComplete) return null;
+  if (!dataLoaded || allComplete) return null;
 
   const completedCount = CHECKLIST_ITEMS.filter((item) => item.isDone(data)).length;
 
