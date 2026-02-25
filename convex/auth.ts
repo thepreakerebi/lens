@@ -40,8 +40,9 @@ export const syncProfile = mutation({
   args: {
     email: v.string(),
     name: v.optional(v.string()),
+    image: v.optional(v.string()),
   },
-  handler: async (ctx, { email, name }) => {
+  handler: async (ctx, { email, name, image }) => {
     const user = await authComponent.getAuthUser(ctx);
     if (!user) throw new ConvexError("Not authenticated");
 
@@ -51,12 +52,17 @@ export const syncProfile = mutation({
       .first();
 
     if (existing) {
-      await ctx.db.patch(existing._id, { email, name: name ?? undefined });
+      await ctx.db.patch(existing._id, {
+        email,
+        name: name ?? undefined,
+        image: image ?? undefined,
+      });
     } else {
       await ctx.db.insert("userProfiles", {
         userId: user._id,
         email,
         name: name ?? undefined,
+        image: image ?? undefined,
       });
     }
   },

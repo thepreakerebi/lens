@@ -27,9 +27,11 @@ export default function SignInPage() {
             // Sync user profile so cron alert emails can resolve the address
             const session = await authClient.getSession();
             if (session?.data?.user) {
+              const u = session.data.user;
               await syncProfile({
-                email: session.data.user.email,
-                name: session.data.user.name ?? undefined,
+                email: u.email,
+                name: u.name ?? undefined,
+                image: (u as { image?: string }).image ?? undefined,
               });
             }
           },

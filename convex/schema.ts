@@ -64,6 +64,7 @@ export default defineSchema({
     userId: v.string(), // Better Auth user ID
     email: v.string(),
     name: v.optional(v.string()),
+    image: v.optional(v.string()),
   }).index("by_userId", ["userId"]),
 
   incidents: defineTable({

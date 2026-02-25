@@ -5,7 +5,6 @@ import { useRouter, usePathname } from "next/navigation";
 import { useEffect } from "react";
 import Link from "next/link";
 import { authClient } from "@/lib/auth-client";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
@@ -15,8 +14,8 @@ import {
   Alert01Icon,
   Settings01Icon,
   DashboardSpeed01Icon,
-  LogoutSquare01Icon,
 } from "@hugeicons/core-free-icons";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   Sidebar,
   SidebarContent,
@@ -82,6 +81,48 @@ const navItems = [
   { href: "/settings", label: "Settings", icon: Settings01Icon },
 ];
 
+function SidebarUserProfile() {
+  const { data: session } = authClient.useSession();
+  const user = session?.user;
+
+  if (!user) {
+    return (
+      <section className="px-2 py-3" aria-label="User profile">
+        <p className="text-xs text-muted-foreground truncate">Loading…</p>
+      </section>
+    );
+  }
+
+  const image = (user as { image?: string }).image;
+  const initials = user.name
+    ? user.name
+        .split(" ")
+        .map((n) => n[0])
+        .join("")
+        .slice(0, 2)
+        .toUpperCase()
+    : user.email?.[0]?.toUpperCase() ?? "?";
+
+  return (
+    <Link
+      href="/settings"
+      className="flex items-center gap-3 px-2 py-3 rounded-md hover:bg-sidebar-accent transition-colors w-full min-w-0"
+      aria-label="View profile and settings"
+    >
+      <Avatar size="sm" className="shrink-0 size-8">
+        {image ? (
+          <AvatarImage src={image} alt="" />
+        ) : null}
+        <AvatarFallback className="text-xs">{initials}</AvatarFallback>
+      </Avatar>
+      <section className="flex flex-col min-w-0 flex-1">
+        <p className="text-sm font-medium truncate">{user.name ?? "User"}</p>
+        <p className="text-xs text-muted-foreground truncate">{user.email}</p>
+      </section>
+    </Link>
+  );
+}
+
 export default function DashboardLayout({
   children,
 }: {
@@ -112,11 +153,6 @@ export default function DashboardLayout({
   }
 
   if (!isAuthenticated) return null;
-
-  const handleSignOut = async () => {
-    await authClient.signOut();
-    router.replace("/sign-in");
-  };
 
   return (
     <SidebarProvider className="h-svh overflow-hidden">
@@ -172,15 +208,7 @@ export default function DashboardLayout({
         <SidebarFooter className="border-t border-sidebar-border">
           <SidebarGroup>
             <SidebarGroupContent>
-              <Button
-                variant="ghost"
-                size="default"
-                className="w-full justify-start gap-3 text-muted-foreground"
-                onClick={handleSignOut}
-              >
-                <HugeiconsIcon icon={LogoutSquare01Icon} size={16} />
-                Sign out
-              </Button>
+              <SidebarUserProfile />
             </SidebarGroupContent>
           </SidebarGroup>
         </SidebarFooter>
